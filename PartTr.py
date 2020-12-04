@@ -1,4 +1,4 @@
-
+import numpy as np
 
 def TransX(rho,sys,dim):
 	#Function that computes the partial transpose of rho with respect to the 
