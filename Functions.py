@@ -79,7 +79,6 @@ def Syspermute(rho,perm,dim):
     given by perm. dim contains the dimensions of all subsystems.
 	
 	Requires: numpy
-    Might still need adjustment for the case where the spaces do not overlap
 	"""
 	
     le = len(dim)	
