@@ -1,6 +1,8 @@
 import unittest
 import numpy as np
-from qfunk.functions import *
+from qfunk.utility import *
+from qfunk.random import *
+from qfunk.opensys import *
 
 
 
