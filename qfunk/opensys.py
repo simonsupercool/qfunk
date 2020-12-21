@@ -9,6 +9,8 @@ Available functions: trans_x, TraceS
 
 import numpy as np
 
+from qfunk.utility import *
+
 
 def link_prod(C1,C2):
     """
@@ -380,7 +382,6 @@ def choi_to_vec(C,dims):
 	#Now, transpose the axis of the reshaped rho, and shape it back to its 
 	#original form
     return C.reshape(arshape).transpose(transAr).reshape(sh)
-    
     
     
     
