@@ -10,7 +10,7 @@ Available functions: TransX, TraceS
 import numpy as np
 
 
-def TransX(rho,sys,dim):
+def trans_x(rho,sys,dim):
     """
     
     Parameters
@@ -47,7 +47,7 @@ def TransX(rho,sys,dim):
 
 
 
-def TraceX(rho,sys,dim):
+def trace_x(rho,sys,dim):
     """
     
     Parameters
@@ -90,7 +90,7 @@ def TraceX(rho,sys,dim):
     return np.trace(rho.reshape(arshape).transpose(perm).reshape(shfinal), axis1=1, axis2=3)
     
 
-def Syspermute(rho,perm,dim):
+def sys_permute(rho,perm,dim):
     """
     
     Parameters
@@ -119,7 +119,7 @@ def Syspermute(rho,perm,dim):
     P = np.append(np.array(perm),np.array(perm)+le)
     return rho.reshape(arshape).transpose(P).reshape(sh)
 
-def LinkProd(C1,C2):
+def link_prod(C1,C2):
     """
     
     Parameters
@@ -219,7 +219,7 @@ def LinkProd(C1,C2):
     
         
         
-def LinkProd_Class(C1,C2):
+def linkprod_class(C1,C2):
     """
     ###Same as Link product, but written for when C1 and C2 are classes
     
@@ -424,7 +424,7 @@ class Comb():
         print(self.dims)
         
 
-def ProjL(rho,sys,dim):
+def projl(rho,sys,dim):
     """
     
     Parameters
@@ -485,7 +485,7 @@ def Lv(rho,dims):
     Details on the projection operator can be found in arXiv.1506.03776, Eq. (B20)
 
     """
-    return ProjL(rho,[1],dims) + ProjL(rho,[3],dims) - ProjL(rho,[1,3],dims) - ProjL(rho,[2,3],dims) +ProjL(rho,[1,2,3],dims) - ProjL(rho,[0,1],dims) + ProjL(rho,[0,1,3],dims)
+    return projl(rho,[1],dims) + projl(rho,[3],dims) - projl(rho,[1,3],dims) - projl(rho,[2,3],dims) + projl(rho,[1,2,3],dims) - projl(rho,[0,1],dims) + projl(rho,[0,1,3],dims)
 
 
 
@@ -517,7 +517,7 @@ def haar_measure(n):
     return q
 
 
-def randRho(n):
+def rand_rho(n):
     """
     
     Parameters
@@ -543,7 +543,7 @@ def randRho(n):
     p = np.dot(np.dot(U,p),np.conjugate(np.transpose(U)))
     return p
 
-def TnProduct(*args):
+def tn_product(*args):
     """
     Parameters
     ----------
@@ -567,7 +567,7 @@ def TnProduct(*args):
             result = np.kron(result,Mat)
         return result
 
-def Wocb():
+def wocb():
     """
     
     Parameters
@@ -597,7 +597,7 @@ def Wocb():
 
 
 
-def ChoitoVec(C,dims):
+def choi_to_vec(C,dims):
     """
     Parameters
     ----------
