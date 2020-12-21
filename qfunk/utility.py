@@ -213,3 +213,170 @@ def tn_product(*args):
         for Mat in args[1:]:
             result = np.kron(result,Mat)
         return result
+
+def dagger(M):
+    """
+    Parameters
+    ----------
+    M: two dimensional matrix
+    
+    Requires
+    -------
+    numpy as np
+    
+    Returns
+    -------
+    transpose conjugate of input matrix M
+    """
+
+    return np.transpose(np.conjugate(M))
+
+
+def eye_like(M, dtype=np.complex128):
+    """
+    Parameters
+    ----------
+    M: two dimensional matrix
+    
+    Requires
+    -------
+    numpy as np
+    
+    Returns
+    -------
+    identity matrix with the same dimension as the output dimension of M
+    """
+
+    return np.eye(np.shape(M)[0], dtype=dtype)
+
+
+
+def _Ejk(d,j,k):
+    """
+    Returns the zero dxd complex matrix with a 1 at index j,k 
+
+    Parameters
+    ----------
+    d : positve integer specifying Hilbert space dimension.
+    j : row index
+    k : column index
+
+    Requires
+    -------
+    numpy as np
+
+    Returns
+    -------
+    ejk :  d x d complex numpy array containing a single 1 at [j,k]
+
+
+    """
+    # construct zero complex matrix
+    ejk = np.zeros((d,d), dtype=np.complex128)
+    ejk[j,k] = 1.0
+    return ejk
+
+
+def gellman_gen(d):
+    """
+    Constructs a generalised Gellman matrix orthogonal basis set for d x d hermitian matrices. 
+
+    Parameters
+    ----------
+    d : positive integer specifying Hilbert space dimension.
+
+    Requires
+    -------
+    numpy as np
+
+    Returns
+    -------
+    gellman : d^2 x d x d complex numpy array containing spanning set
+
+    Raises
+    ------
+    ValueError if dimension is non-int or negative
+    """
+
+    # basic input parsing
+    assert d>1 and type(d) is int, "Dimension must be positive integer greater than 1"
+
+    # preallocate set arry
+    gellman = np.empty((d**2, d, d), dtype=np.complex128)
+
+    # iterate through use cases
+    ind = 0
+    for k in range(1, d):
+        for j in range(0, k):
+            # create symmetric component
+            set_el_sym = _Ejk(d, j, k) + Ejk(d, k, j)
+
+            # create antisymmetric component
+            set_el_asym = -1j*(_Ejk(d, j, k) - Ejk(d, k, j)) 
+
+            # add to set
+            gellman[ind,:,:] = set_el_sym
+            gellman[ind+1,:,:] = set_el_asym
+
+            # step counter
+            ind += 2
+
+    # create diagonal elements 
+    for l in range(1, d):
+
+        # initialise zero matrix
+        diagonal = np.zeros((d,d), dtype=np.complex128)
+        coeff = np.sqrt(2/((l)*(l+1)))
+        for i in range(0,l):
+            diagonal += (_Ejk(d,i,i))  
+
+        diagonal -= l*_Ejk(d,l,l)    
+
+        # add to collection
+        gellman[ind,:,:] = coeff*diagonal
+        ind += 1
+
+    # add identity to set
+    gellman[-1,:,:] = np.eye(d, dtype=np.complex128)
+
+    return gellman
+
+
+
+
+def MUB_gen(d):
+    """
+    Generates a maximal MUB in d-dimensional Hilbert space for prime d
+    
+    Parameters
+    ----------
+    d : positive integer specifying Hilbert space dimension. Must be prime number
+
+    Requires
+    -------
+    numpy as np
+
+    Returns
+    -------
+    gellman : d^2 x d x d complex numpy array containing spanning set
+
+    """
+
+    # base constant
+    w = np.exp(2*np.pi*1j/d)
+    # MUB container
+    mub = np.zeros((d+1,d,d,d),dtype=np.complex128)
+    # assign computational basis
+    for i in range(d):
+        mub[0,i,i,i] = 1.0
+
+    # iteratovely construct the MUB
+    for k in range(1,d+1):
+        for m in range(d):
+            state = np.zeros((d,1), dtype=np.complex128)
+            for l in range(d):
+                el = mub[0,l,:,l].reshape(d,1)
+                state += w**(k*(l**2)+m*l) * el/np.sqrt(d)   
+            mub[k,m,:,:] = np.kron(state, dagger(state))
+
+    return mub
