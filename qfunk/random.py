@@ -62,3 +62,4 @@ def rand_rho(n):
     U = haar_measure(n)
     p = np.dot(np.dot(U,p),np.conjugate(np.transpose(U)))
     return p
+
