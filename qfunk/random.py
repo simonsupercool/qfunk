@@ -63,3 +63,45 @@ def rand_rho(n):
     p = np.dot(np.dot(U,p),np.conjugate(np.transpose(U)))
     return p
 
+
+def bistochastic_gen(n):
+    """
+    
+    Parameters
+    ----------
+    n: size of desired matrix
+    
+    
+    Requires
+    -------
+    numpy as np
+    
+    Returns
+    -------
+    A randomly generated bistochastic matrix - unclear what the sampling behaviour is however.
+    
+    """
+
+    # generate iid matrix
+    B = np.random.rand(n,n)
+    # normalise columns and rows until bistochastic
+    biflag = False
+    while not biflag:
+        for i in range(n):
+            B[:,i] = B[:,i]/np.sum(B[:,i]) 
+
+        for j in range(N):
+            B[j,:] = B[j,:]/np.sum(B[j,:]) 
+
+        # check if bistochastic matrix else continue with normalisation procedure
+        biflag = True
+        for i in range(n):
+            if not np.isclose(sum(B[:,i]), 1.0):
+                biflag = False
+                break
+        for j in range(n):
+            if not np.isclose(sum(B[j,:]), 1.0):
+                biflag = False
+                break
+
+    return B

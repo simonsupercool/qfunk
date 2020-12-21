@@ -40,7 +40,7 @@ class Testrand_rho(unittest.TestCase):
 
 
 ##############################################
-###### unit tests for partial operations #####
+###### unit tests for utility operations #####
 ##############################################
 class Testtrace_x(unittest.TestCase):
 
@@ -66,6 +66,29 @@ class Testtrace_x(unittest.TestCase):
     # test a partial trace over maximally entangled state
 
     # test a partial trace over multipartite system
+
+class Testtrace_x(unittest.TestCase):
+
+    # define test of hermitian conjugate
+    def test_dagger(self):
+        # generate random state
+        matrix = np.tril(np.ones((10,10))) + 1j*np.triu(np.ones((10,10)))
+        # check if dagger is performing correct operation on hermitian matrix
+        self.assertTrue(np.allclose(np.conj(np.transpose(matrix)), dagger(matrix)), msg="Hermitian conjugate not corectly computed")
+
+
+
+class Test_eyelike(self):
+    # define test for identity generation of same dimension
+    def test_generation(self):
+        # generate identity matrix
+        matrix_eye = np.eye(10)
+        matrix_like = np.ones(10)
+
+        # test function
+        self.assertTrue(np.allclose(matrix_eye, eye_like(matrix_like)),msg="Generated matrix not similar to identity")
+
+
 
 ##############################################
 

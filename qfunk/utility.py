@@ -380,3 +380,43 @@ def MUB_gen(d):
             mub[k,m,:,:] = np.kron(state, dagger(state))
 
     return mub
+
+
+
+def ent_gen(dim, vec=False):
+    """
+    Generates a maximally entangled bi-partite system each of dimension dim
+
+    Parameters
+    ----------
+    dim : positive integer specifying Hilbert space dimension
+    vec : boolean specifying whether to return entangled state as state vector or density operator
+
+    Requires
+    -------
+    numpy as np
+
+    Returns
+    -------
+    ent : d x d complex numpy array corresponding to maximally entangled state or d x 1 state vector of the same
+
+
+    """
+
+    # pre allocate entangled state array
+    ent = np.zeros((dim**2,1),dtype=np.complex128)
+
+    # iterate over each basis element
+    for i in range(dim):
+        # generate computaional basis element
+        comput_el = np.zeros((dim, 1), dtype=np.complex128)
+        # assign value 
+        comput_el[i] = 1.0
+
+        # add to state
+        ent += np.kron(comput_el, comput_el)
+
+    if vec:
+        return ent
+    else:
+        return np.kron(ent, dagger(ent))/dim
