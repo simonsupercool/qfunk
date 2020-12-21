@@ -78,7 +78,7 @@ class Testtrace_x(unittest.TestCase):
 
 
 
-class Test_eyelike(self):
+class Test_eyelike(unittest.TestCase):
     # define test for identity generation of same dimension
     def test_generation(self):
         # generate identity matrix
