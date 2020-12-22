@@ -422,11 +422,6 @@ class Comb():
             Dict[nam] = d
         return Dict
         
-        
-M1 = np.random.rand(144).reshape((12,12))
-M2 = np.random.rand(24**2).reshape((24,24))
-C1 = Comb(M1,[2,3,2],['A','B','C'])
-C2 = Comb(M2,[2,3,2],['A','R','D'])
 
 
 
