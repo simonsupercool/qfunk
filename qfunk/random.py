@@ -10,9 +10,10 @@ Available functions: trans_x, TraceS
 import numpy as np
 
 
-def haar_measure(n):
+def random_unitary(n):
     """
-    
+    Generates a random unitary matrix sampled over Haar measure
+
     Parameters
     ----------
     n: size of the random unitary that is to be sampled
@@ -28,7 +29,7 @@ def haar_measure(n):
     -------
     randomly (according to Haar measure) generated unitary matrix of dimension n x n
     
-    """""
+    """
     z = (np.random.rand(n,n) + 1j*np.random.rand(n,n))/np.sqrt(2.0)
     q,r = np.linalg.qr(z)
     d = np.diagonal(r)
@@ -48,7 +49,7 @@ def rand_rho(n):
     Requires
     -------
     numpy as np
-    haar_measure
+    random_unitary
     
     Returns
     -------
@@ -59,7 +60,7 @@ def rand_rho(n):
     
     p = np.diag(np.random.rand(n))
     p = p/np.trace(p)
-    U = haar_measure(n)
+    U = random_unitary(n)
     p = np.dot(np.dot(U,p),np.conjugate(np.transpose(U)))
     return p
 

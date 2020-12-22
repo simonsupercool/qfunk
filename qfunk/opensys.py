@@ -7,6 +7,8 @@ Contains basic functions for linear algebra.
 Available functions: trans_x, TraceS
 """
 
+import warnings
+
 import numpy as np
 
 from qfunk.utility import *
@@ -113,7 +115,7 @@ def link_prod(C1,C2):
     
 
 
-class Comb():
+class Comb(object):
     """
     Class that contains comb objects and functions that are useful on them
     
@@ -367,17 +369,17 @@ class Comb():
         unique, count = np.unique(labels,return_counts=True)
         if sum(count) > len(unique):
             lab_cop = unique
-            print('Warning: The provided list of labels contains duplicates. Computation continues with the simplified list', unique)
-        
+            warnings.warn('Warning: The provided list of labels contains duplicates. Computation continues with the simplified list: {}'.format(unique), RuntimeWarning)
+           
         #Make sure the labels actually all occur, if not, remove those that don't
         contains_check = np.in1d(lab_cop, Names)
         if sum(contains_check) != len(lab_cop):
             if sum(contains_check) == 0:
-                print('Warning: None the provided labels actually occured, computation did not return a result')
+                warnings.warn('Warning: None of the provided labels actually occured, computation did not return a result', RuntimeWarning)
                 return
             else: 
                 lab_cop = lab_cop[np.where(contains_check)]
-                print('Warning: Not all of the provided labels actually occur Computation contiures with the simplified list', lab_cop )
+                warnings.warn('Warning: Not all of the provided labels actually occur. Computation continues with the simplified list: {}'.format(lab_cop), RuntimeWarning )
             
         
         #get dimension information from comb

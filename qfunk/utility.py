@@ -4,7 +4,6 @@
 Created on Fri Nov 27 21:57:21 2020
 @author: simon
 Contains basic functions for linear algebra. 
-Available functions: trans_x, TraceS
 """
 
 import numpy as np

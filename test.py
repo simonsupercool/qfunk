@@ -13,7 +13,7 @@ from qfunk.opensys import *
 # unit tests for random generation of things #
 ##############################################
 
-class Testrand_rho(unittest.TestCase):
+class Test_rand_rho(unittest.TestCase):
 
     # check if randomly produced density operator is valid density matrix
     def test_isdensity(self):
@@ -38,11 +38,28 @@ class Testrand_rho(unittest.TestCase):
 
 
 
+class Test_random_unitary(unittest.TestCase):
+    # check if generated matrix is indeed unitary
+    def test_isunitary(self):
+        # choose dimension of matrix
+        dim = 10
+
+        # generate random unitary matrix
+        U = random_unitary(dim)
+
+        # compute left and right products
+        left_op = U @ np.conjugate(np.transpose(U))
+        right_op = np.conjugate(np.transpose(U)) @ U
+
+        # confirm identity equivalency
+        self.assertTrue(np.allclose(left_op, np.eye(dim)), msg="Product of UU^\dagger is not identity")
+        self.assertTrue(np.allclose(right_op, np.eye(dim)), msg="Product of U^\dagger U is not identity")
+
 
 ##############################################
 ###### unit tests for utility operations #####
 ##############################################
-class Testtrace_x(unittest.TestCase):
+class Test_trace_x(unittest.TestCase):
 
     # define a partial trace over product states
     def test_product(self):
@@ -64,18 +81,54 @@ class Testtrace_x(unittest.TestCase):
         self.assertTrue(np.allclose(ptrace_two, rand_rho_two), msg="seperable state A not correctly traced out")
 
     # test a partial trace over maximally entangled state
+    def test_entangled(self):
+        # dimension of subsystems
+        dim = 10
+
+        # generate me a maximally entangled density operator
+        ent_state = ent_gen(dim, vec=False)
+
+        # compute partial trace of both subsytems
+        subsys_one = trace_x(ent_state, sys=[0], dim=[dim,dim])
+        subsys_two = trace_x(ent_state, sys=[1], dim=[dim,dim])
+
+        # assert both are equal to maximally mixed state
+        self.assertTrue(np.allclose(subsys_one, np.eye(dim)/dim), msg="Partial trace of maximally entangled state is not maximally mixed")
+        self.assertTrue(np.allclose(subsys_two, np.eye(dim)/dim), msg="Partial trace of maximally entangled state is not maximally mixed")
 
     # test a partial trace over multipartite system
+    def test_ABC(self):
+        # dimension of subsystems
+        dim = 10
 
-class Testtrace_x(unittest.TestCase):
+        # generate three random state
+        A = rand_rho(dim)
+        B = rand_rho(dim)
+        C = rand_rho(dim)
+
+        # compute product state
+        ABC = np.kron(np.kron(A,B),C)
+
+        # compute partial trace of all divisions
+        AB = trace_x(ABC, sys=[2], dim=[dim,dim,dim])
+        BC = trace_x(ABC, sys=[0], dim=[dim,dim,dim])
+        AC = trace_x(ABC, sys=[1], dim=[dim,dim,dim])
+
+
+        # assert all are equal to sub products
+        self.assertTrue(np.allclose(AB, np.kron(A,B)), msg="Partial trace over C is not equal to AB")
+        self.assertTrue(np.allclose(BC, np.kron(B,C)), msg="Partial trace over A is not equal to BC")
+        self.assertTrue(np.allclose(AC, np.kron(A,C)), msg="Partial trace over B is not equal to AC")
+       
+
+class Test_dagger(unittest.TestCase):
 
     # define test of hermitian conjugate
-    def test_dagger(self):
+    def test_hermitian_conjugate(self):
         # generate random state
         matrix = np.tril(np.ones((10,10))) + 1j*np.triu(np.ones((10,10)))
         # check if dagger is performing correct operation on hermitian matrix
-        self.assertTrue(np.allclose(np.conj(np.transpose(matrix)), dagger(matrix)), msg="Hermitian conjugate not corectly computed")
-
+        self.assertTrue(np.allclose(np.conj(np.transpose(matrix)), dagger(matrix)), msg="Hermitian conjugate not correctly computed")
 
 
 class Test_eyelike(unittest.TestCase):
@@ -97,4 +150,4 @@ class Test_eyelike(unittest.TestCase):
 
 # run tests
 if __name__ == '__main__':
-    unittest.main()
+    unittest.main(verbosity=2)
