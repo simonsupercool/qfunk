@@ -1,11 +1,13 @@
+
 import unittest
+
 import numpy as np
+from scipy.special import comb
+
 from qfunk.utility import *
 from qfunk.random import *
 from qfunk.opensys import *
-
-
-
+from qfunk.qoptic import *
 
 
 
@@ -141,6 +143,39 @@ class Test_eyelike(unittest.TestCase):
         # test function
         self.assertTrue(np.allclose(matrix_eye, eye_like(matrix_like)),msg="Generated matrix not similar to identity")
 
+
+
+##############################################
+###### unit tests for qoptics functions  #####
+##############################################
+
+class Test_symmetric_map(unittest.TestCase):
+    # define test to check correct 
+    def test_dimension(self):
+        # define number of modes and photons
+        m_num = 4
+        p_num = 2
+
+        # compute symmetric matrix
+        S = symmetric_map(m_num, p_num)
+        # computs shape of operator
+        dims = np.shape(S)
+        print(dims)
+        # check output dimension is correct
+        self.assertTrue(dims[0]==comb(m_num+p_num-1,p_num, exact=True))
+        # check input direction is correct
+        self.assertTrue(dims[1]==m_num**p_num)
+
+    def test_isometry(self):
+        # define number of modes and photons
+        m_num = 4
+        p_num = 2
+
+        # compute symmetric matrix
+        S = symmetric_map(m_num, p_num)
+            
+        # test for isometric transformation in direction of map (inverse is not one obviously)
+        self.assertTrue(np.allclose(S @ np.transpose(S), np.eye(comb(m_num+p_num-1,p_num, exact=True))))
 
 
 ##############################################
