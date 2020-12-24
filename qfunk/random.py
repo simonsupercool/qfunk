@@ -67,7 +67,8 @@ def rand_rho(n):
 
 def bistochastic_gen(n):
     """
-    
+    Generates a random n x n bistochastic matrix
+
     Parameters
     ----------
     n: size of desired matrix

@@ -492,4 +492,3 @@ def choi_to_vec(C,dims):
     return C.reshape(arshape).transpose(transAr).reshape(sh)
     
     
-    
