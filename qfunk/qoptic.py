@@ -4,6 +4,33 @@ from scipy.special import comb
 
 
 
+def dirsum(arrayset, combination):
+    """
+    Generates direct product sum of arrayset according to given combination
+
+    Parameters
+    -----------
+    arrayset: list of matrices to draw from e.g. [A,B,C,\dots]
+    combination: list of integers that defines order of direct sum given arrayset e.g. [0,1,0,2,1]
+    
+    Requires
+    -----------
+    numpy as np
+    
+    Returns
+    -----------
+    Direct sum matrix given combination and array codebook
+    """
+
+    # initialise array with first element of combination
+    U = arrayset[combination[0]]
+    # iterate over remaining elements
+    for i in combination[1:]:
+        # append next operator
+        U = block_diag(U, arrayset[i])
+    return U
+    
+
 
 def _str_base(num, base, length, numerals = '0123456789'):
     """
@@ -146,4 +173,5 @@ def number_states(m_num,p_num):
     # compute unique Fock states
     uniques = np.fliplr(np.unique(fock, axis=0))
     return uniques
+
 

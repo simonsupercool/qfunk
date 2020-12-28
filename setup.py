@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="qfunk",
-    version="1.0.1",
+    version="0.1.2",
     author="Simon Milz, Joshua Morris",
     author_email="Simon.Milz@oeaw.ac.at, joshua.morris@univie.ac.at",
     description="quantum information library",

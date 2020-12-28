@@ -341,81 +341,24 @@ def gellman_gen(d):
     return gellman
 
 
-
-
-def MUB_gen(d):
+def oppressor(M,tol=1e-15):
     """
-    Generates a maximal MUB in d-dimensional Hilbert space for prime d
+    Sets small values of array to zero
+
+    Parameters
+    -----------
+    M:  Matrix to be suppressed
+    tol: tolerance below which elements are zeroed
     
-    Parameters
-    ----------
-    d : positive integer specifying Hilbert space dimension. Must be prime number
-
     Requires
-    -------
+    -----------
     numpy as np
-
+    
     Returns
-    -------
-    gellman : d^2 x d x d complex numpy array containing spanning set
-
+    -----------
+    Suppressed 
     """
 
-    # base constant
-    w = np.exp(2*np.pi*1j/d)
-    # MUB container
-    mub = np.zeros((d+1,d,d,d),dtype=np.complex128)
-    # assign computational basis
-    for i in range(d):
-        mub[0,i,i,i] = 1.0
+    M[abs(M) < tol] = 0.0 
 
-    # iteratovely construct the MUB
-    for k in range(1,d+1):
-        for m in range(d):
-            state = np.zeros((d,1), dtype=np.complex128)
-            for l in range(d):
-                el = mub[0,l,:,l].reshape(d,1)
-                state += w**(k*(l**2)+m*l) * el/np.sqrt(d)   
-            mub[k,m,:,:] = np.kron(state, dagger(state))
-
-    return mub
-
-
-
-def ent_gen(dim, vec=False):
-    """
-    Generates a maximally entangled bi-partite system each of dimension dim
-
-    Parameters
-    ----------
-    dim : positive integer specifying Hilbert space dimension
-    vec : boolean specifying whether to return entangled state as state vector or density operator
-
-    Requires
-    -------
-    numpy as np
-
-    Returns
-    -------
-    ent : d x d complex numpy array corresponding to maximally entangled state or d x 1 state vector of the same
-
-
-    """
-
-    # pre allocate entangled state array
-    ent = np.zeros((dim**2,1),dtype=np.complex128)
-
-    # iterate over each basis element
-    for i in range(dim):
-        # generate computaional basis element
-        comput_el = np.zeros((dim, 1), dtype=np.complex128)
-        # assign value 
-        comput_el[i] = 1.0
-
-        # add to state
-        ent += np.kron(comput_el, comput_el)
-
-    if vec:
-        return ent
-    else:
-        return np.kron(ent, dagger(ent))/dim
+    return M
