@@ -8,6 +8,7 @@ from qfunk.utility import *
 from qfunk.random import *
 from qfunk.opensys import *
 from qfunk.qoptic import *
+from numpy import linalg as LA
 
 
 
@@ -179,10 +180,78 @@ class Test_symmetric_map(unittest.TestCase):
 
 
 ##############################################
+###### unit tests for opensys functions  #####
+##############################################
 
+class Test_comb_func(unittest.TestCase):  
+    
+    #########
+    #Check Link Product
+    #########
+    #check if Link Product of positive matrices is positive
+    def test_positive(self):
+        #generate random states, i.e., positive matrices
+        c_1 = rand_rho(12)
+        c_2 = rand_rho(12)
+        comb_1 = Comb(c_1,[3,2,2],['A','B','C'])
+        comb_2 = Comb(c_2,[2,3,2],['C','A','D'])
+        #check if link product is positive
+        self.assertTrue(min(np.real(LA.eigvals(comb_1.link(comb_2).mat))) >= 0, msg="Link product not positive")
+        
+    #check if Link Product of hermitian matrices is positive
+    def test_hermitian(self):
+        #generate random hermitian matrices
+        c_1 = (np.random.rand(144) + 1j*np.random.rand(144)).reshape((12,12))
+        c_1 = 0.5*(c_1 + np.transpose(np.conjugate(c_1)))
+        c_2 = (np.random.rand(144) + 1j*np.random.rand(144)).reshape((12,12))
+        c_2 = 0.5*(c_2 + np.transpose(np.conjugate(c_2)))
+        comb_1 = Comb(c_1,[3,2,2],['A','B','C'])
+        comb_2 = Comb(c_2,[2,3,2],['C','A','D'])
+        c_3 = comb_1.link(comb_2).mat
+        #check if link product is positive
+        self.assertTrue(np.allclose(dagger(c_3),c_3), msg="Link product not Hermitian")
+    
+    #check if Link Product is commutative (up to reordering)
+    def test_commute(self):
+        #generate random complex matrices
+        c_1 = (np.random.rand(144) + 1j*np.random.rand(144)).reshape((12,12))
+        c_2 = (np.random.rand(144) + 1j*np.random.rand(144)).reshape((12,12))
+        comb_1 = Comb(c_1,[3,2,2],['A','B','C'])
+        comb_2 = Comb(c_2,[2,3,2],['C','A','D'])
+        
+        c_3 = comb_1.link(comb_2).mat
+        c_4 = comb_2.link(comb_1).mat
+        
+        self.assertTrue(np.allclose(sys_permute(c_3, [1,0], [2,2]),c_4), msg="Link product not commutative")
 
-
-
+    
+    #########
+    #Check relabel functions
+    #########
+    def test_relabel(self):
+        #Generate random comb like object
+        c_1 = (np.random.rand(144) + 1j*np.random.rand(144)).reshape((12,12))
+        comb_1 = Comb(c_1,[3,2,2],['A','B','C'])
+        #Check if replacing all labels works
+        newlab = ['X','Y','Z']
+        comb_1.relabel(newlab)
+        self.assertTrue(comb_1.spaces == newlab, msg="Relabel function of comb class does not work")
+        
+        #Check if replacing some labels works
+        
+        #introduce new set of potential labels, choose random number of labels that should be exchanged
+        Testlabels = np.array(['P','Q','R'])
+        num_of_spaces = np.random.randint(len(newlab)-1)+1
+        exchanged_spaces = np.random.choice(np.arange(len(newlab)), num_of_spaces, replace=False)
+        
+        #construct lists of old labels and new labels, as well as desired final list of labels
+        original_spaces = np.array(comb_1.spaces)
+        oldlab = original_spaces[exchanged_spaces]
+        newlab = Testlabels[exchanged_spaces]
+        original_spaces[exchanged_spaces] = Testlabels[exchanged_spaces]
+        comb_1.relabelInd(oldlab,newlab)
+        self.assertTrue((comb_1.spaces == original_spaces).all(), msg="RelabelInd function of comb class does not work")
+    
 # run tests
 if __name__ == '__main__':
     unittest.main(verbosity=2)
