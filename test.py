@@ -3,12 +3,13 @@ import unittest
 
 import numpy as np
 from scipy.special import comb
-
-from qfunk.utility import *
-from qfunk.random import *
-from qfunk.opensys import *
-from qfunk.qoptic import *
 from numpy import linalg as LA
+
+import qfunk.utility as qut
+import qfunk.random as qr
+import qfunk.opensys as qos
+import qfunk.qoptic as qop
+
 
 
 
@@ -21,7 +22,7 @@ class Test_rand_rho(unittest.TestCase):
     # check if randomly produced density operator is valid density matrix
     def test_isdensity(self):
         # generate random state
-        rho = rand_rho(10)
+        rho = qr.rand_rho(10)
 
         # check if trace one
         self.assertTrue(np.isclose(np.trace(rho), 1.0), msg="matrix is not trace one")
@@ -39,8 +40,6 @@ class Test_rand_rho(unittest.TestCase):
             # assert False outcome
             self.assertFalse(False, msg="random state is not positive semidefinite")
 
-
-
 class Test_random_unitary(unittest.TestCase):
     # check if generated matrix is indeed unitary
     def test_isunitary(self):
@@ -48,7 +47,7 @@ class Test_random_unitary(unittest.TestCase):
         dim = 10
 
         # generate random unitary matrix
-        U = random_unitary(dim)
+        U = qr.random_unitary(dim)
 
         # compute left and right products
         left_op = U @ np.conjugate(np.transpose(U))
@@ -71,13 +70,13 @@ class Test_trace_x(unittest.TestCase):
         dim_two = 11
 
         # construct simple seperable states
-        rand_rho_one = rand_rho(dim_one)
-        rand_rho_two = rand_rho(dim_two)
+        rand_rho_one = qr.rand_rho(dim_one)
+        rand_rho_two = qr.rand_rho(dim_two)
         # compute tensor product
         state = np.kron(rand_rho_one, rand_rho_two)
         # now compute partial trace over both subsystems
-        ptrace_one = trace_x(state, sys=[1], dim=[dim_one, dim_two])
-        ptrace_two = trace_x(state, sys=[0], dim=[dim_one, dim_two])
+        ptrace_one = qut.trace_x(state, sys=[1], dim=[dim_one, dim_two])
+        ptrace_two = qut.trace_x(state, sys=[0], dim=[dim_one, dim_two])
 
         # perform checks on both subsystems
         self.assertTrue(np.allclose(ptrace_one, rand_rho_one), msg="seperable state B not correctly traced out")
@@ -89,11 +88,11 @@ class Test_trace_x(unittest.TestCase):
         dim = 10
 
         # generate me a maximally entangled density operator
-        ent_state = ent_gen(dim, vec=False)
+        ent_state = qr.ent_gen(dim, vec=False)
 
         # compute partial trace of both subsytems
-        subsys_one = trace_x(ent_state, sys=[0], dim=[dim,dim])
-        subsys_two = trace_x(ent_state, sys=[1], dim=[dim,dim])
+        subsys_one = qut.trace_x(ent_state, sys=[0], dim=[dim,dim])
+        subsys_two = qut.trace_x(ent_state, sys=[1], dim=[dim,dim])
 
         # assert both are equal to maximally mixed state
         self.assertTrue(np.allclose(subsys_one, np.eye(dim)/dim), msg="Partial trace of maximally entangled state is not maximally mixed")
@@ -105,17 +104,17 @@ class Test_trace_x(unittest.TestCase):
         dim = 10
 
         # generate three random state
-        A = rand_rho(dim)
-        B = rand_rho(dim)
-        C = rand_rho(dim)
+        A = qr.rand_rho(dim)
+        B = qr.rand_rho(dim)
+        C = qr.rand_rho(dim)
 
         # compute product state
         ABC = np.kron(np.kron(A,B),C)
 
         # compute partial trace of all divisions
-        AB = trace_x(ABC, sys=[2], dim=[dim,dim,dim])
-        BC = trace_x(ABC, sys=[0], dim=[dim,dim,dim])
-        AC = trace_x(ABC, sys=[1], dim=[dim,dim,dim])
+        AB = qut.trace_x(ABC, sys=[2], dim=[dim,dim,dim])
+        BC = qut.trace_x(ABC, sys=[0], dim=[dim,dim,dim])
+        AC = qut.trace_x(ABC, sys=[1], dim=[dim,dim,dim])
 
 
         # assert all are equal to sub products
@@ -131,7 +130,7 @@ class Test_dagger(unittest.TestCase):
         # generate random state
         matrix = np.tril(np.ones((10,10))) + 1j*np.triu(np.ones((10,10)))
         # check if dagger is performing correct operation on hermitian matrix
-        self.assertTrue(np.allclose(np.conj(np.transpose(matrix)), dagger(matrix)), msg="Hermitian conjugate not correctly computed")
+        self.assertTrue(np.allclose(np.conj(np.transpose(matrix)), qut.dagger(matrix)), msg="Hermitian conjugate not correctly computed")
 
 
 class Test_eyelike(unittest.TestCase):
@@ -142,7 +141,7 @@ class Test_eyelike(unittest.TestCase):
         matrix_like = np.ones(10)
 
         # test function
-        self.assertTrue(np.allclose(matrix_eye, eye_like(matrix_like)),msg="Generated matrix not similar to identity")
+        self.assertTrue(np.allclose(matrix_eye, qut.eye_like(matrix_like)),msg="Generated matrix not similar to identity")
 
 
 
@@ -158,10 +157,9 @@ class Test_symmetric_map(unittest.TestCase):
         p_num = 2
 
         # compute symmetric matrix
-        S = symmetric_map(m_num, p_num)
+        S = qop.symmetric_map(m_num, p_num)
         # computs shape of operator
         dims = np.shape(S)
-        print(dims)
         # check output dimension is correct
         self.assertTrue(dims[0]==comb(m_num+p_num-1,p_num, exact=True))
         # check input direction is correct
@@ -173,7 +171,7 @@ class Test_symmetric_map(unittest.TestCase):
         p_num = 2
 
         # compute symmetric matrix
-        S = symmetric_map(m_num, p_num)
+        S = qop.symmetric_map(m_num, p_num)
             
         # test for isometric transformation in direction of map (inverse is not one obviously)
         self.assertTrue(np.allclose(S @ np.transpose(S), np.eye(comb(m_num+p_num-1,p_num, exact=True))))
@@ -183,55 +181,79 @@ class Test_symmetric_map(unittest.TestCase):
 ###### unit tests for opensys functions  #####
 ##############################################
 
-class Test_comb_func(unittest.TestCase):  
+class Test_Comb(unittest.TestCase):  
     
     #########
     #Check Link Product
     #########
     #check if Link Product of positive matrices is positive
     def test_positive(self):
+        # define test dimension
+        dim = 12
+        # define comb orders
+        order1 = [3,2,2]
+        order2 = [2,3,2]
+
         #generate random states, i.e., positive matrices
-        c_1 = rand_rho(12)
-        c_2 = rand_rho(12)
-        comb_1 = Comb(c_1,[3,2,2],['A','B','C'])
-        comb_2 = Comb(c_2,[2,3,2],['C','A','D'])
+        c_1 = qr.rand_rho(dim)
+        c_2 = qr.rand_rho(dim)
+        comb_1 = qos.Comb(c_1, order1, ['A','B','C'])
+        comb_2 = qos.Comb(c_2, order2, ['C','A','D'])
+
         #check if link product is positive
         self.assertTrue(min(np.real(LA.eigvals(comb_1.link(comb_2).mat))) >= 0, msg="Link product not positive")
         
     #check if Link Product of hermitian matrices is positive
     def test_hermitian(self):
+        # define test dimension
+        dim = 12
+        # define comb orders
+        order1 = [3,2,2]
+        order2 = [2,3,2]
+
         #generate random hermitian matrices
-        c_1 = (np.random.rand(144) + 1j*np.random.rand(144)).reshape((12,12))
+        c_1 = (np.random.rand(dim**2) + 1j*np.random.rand(dim**2)).reshape((dim,dim))
         c_1 = 0.5*(c_1 + np.transpose(np.conjugate(c_1)))
-        c_2 = (np.random.rand(144) + 1j*np.random.rand(144)).reshape((12,12))
+        c_2 = (np.random.rand(dim**2) + 1j*np.random.rand(dim**2)).reshape((dim,dim))
         c_2 = 0.5*(c_2 + np.transpose(np.conjugate(c_2)))
-        comb_1 = Comb(c_1,[3,2,2],['A','B','C'])
-        comb_2 = Comb(c_2,[2,3,2],['C','A','D'])
+        comb_1 = qos.Comb(c_1, order1, ['A','B','C'])
+        comb_2 = qos.Comb(c_2, order2, ['C','A','D'])
         c_3 = comb_1.link(comb_2).mat
         #check if link product is positive
-        self.assertTrue(np.allclose(dagger(c_3),c_3), msg="Link product not Hermitian")
+        self.assertTrue(np.allclose(qut.dagger(c_3), c_3), msg="Link product not Hermitian")
     
     #check if Link Product is commutative (up to reordering)
     def test_commute(self):
+        # define test dimension
+        dim = 12
+        # define comb orders
+        order1 = [3,2,2]
+        order2 = [2,3,2]
+
         #generate random complex matrices
-        c_1 = (np.random.rand(144) + 1j*np.random.rand(144)).reshape((12,12))
-        c_2 = (np.random.rand(144) + 1j*np.random.rand(144)).reshape((12,12))
-        comb_1 = Comb(c_1,[3,2,2],['A','B','C'])
-        comb_2 = Comb(c_2,[2,3,2],['C','A','D'])
+        c_1 = (np.random.rand(dim**2) + 1j*np.random.rand(dim**2)).reshape((dim, dim))
+        c_2 = (np.random.rand(dim**2) + 1j*np.random.rand(dim**2)).reshape((dim, dim))
+        comb_1 = qos.Comb(c_1, order1, ['A','B','C'])
+        comb_2 = qos.Comb(c_2, order2, ['C','A','D'])
         
         c_3 = comb_1.link(comb_2).mat
         c_4 = comb_2.link(comb_1).mat
         
-        self.assertTrue(np.allclose(sys_permute(c_3, [1,0], [2,2]),c_4), msg="Link product not commutative")
+        self.assertTrue(np.allclose(qut.sys_permute(c_3, [1,0], [2,2]),c_4), msg="Link product not commutative")
 
     
     #########
     #Check relabel functions
     #########
     def test_relabel(self):
+        # define dimension of system
+        dim = 12
+        # define comb ordering
+        order = [3,2,2]
+
         #Generate random comb like object
-        c_1 = (np.random.rand(144) + 1j*np.random.rand(144)).reshape((12,12))
-        comb_1 = Comb(c_1,[3,2,2],['A','B','C'])
+        c_1 = (np.random.rand(dim**2) + 1j*np.random.rand(dim**2)).reshape((dim,dim))
+        comb_1 = qos.Comb(c_1, order,['A','B','C'])
         #Check if replacing all labels works
         newlab = ['X','Y','Z']
         comb_1.relabel(newlab)

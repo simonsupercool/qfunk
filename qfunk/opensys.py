@@ -1,17 +1,9 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
-Created on Fri Nov 27 21:57:21 2020
-@author: simon
-Contains basic functions for linear algebra. 
-Available functions: trans_x, TraceS
-"""
 
 import warnings
 
 import numpy as np
 
-from qfunk.utility import *
+import qfunk.utility as qut
 
 
 def link_prod(C1,C2):
@@ -30,8 +22,9 @@ def link_prod(C1,C2):
     Requires
     -------
     numpy as np
-    trace_x
-    trans_x
+    qfunk.utility.trace_x
+    qfunk.utility.trans_x
+    qfunk.utility.sys_permute
 
     Returns
     -------
@@ -82,7 +75,7 @@ def link_prod(C1,C2):
         #Positon of the common spaces
         PosComm1 = np.array([np.where(Names1 == label)  for label in CommSpaces]).flatten()
         #Tensor product and partial transposition over common spaces
-        Comb1 = np.kron(trans_x(Comb1,PosComm1,dim1),np.eye(ExDim1))
+        Comb1 = np.kron(qut.trans_x(Comb1,PosComm1,dim1),np.eye(ExDim1))
         
         #Tensor the second comb with an identity of the 
         #correct size and rearrange the spaces in the correct order
@@ -100,7 +93,7 @@ def link_prod(C1,C2):
         dimsCurr = np.array([Dict[Curr] for Curr in CurrentOrder]).flatten()
         #permute spaces of Comb2 according to said permutation
     
-        Comb2 = sys_permute(Comb2, perm, dimsCurr)
+        Comb2 = qut.sys_permute(Comb2, perm, dimsCurr)
         
         #Position of the common systems and dimensions of the spaces in right order
         sys = np.array([np.where(CorrectOrder == label) for label in CommSpaces]).flatten()
@@ -110,7 +103,7 @@ def link_prod(C1,C2):
         #dimensions of the remaining spaces after contraction
         dimsNew = np.delete(dims,sys)
         
-        return (trace_x(np.dot(Comb1,Comb2), sys, dims), dimsNew, CorrectOrder)
+        return (qut.trace_x(np.dot(Comb1,Comb2), sys, dims), dimsNew, CorrectOrder)
 
     
 
@@ -137,8 +130,8 @@ class Comb(object):
     Requires 
     --------
     numpy as np
-    trace_x
-    trans_x    
+    qfunk.utility.trace_x
+    qfunk.utility.trans_x    
     
     """
     
@@ -172,7 +165,7 @@ class Comb(object):
         Requires
         -------
         numpy as np
-        trace_x
+        qfunk.utility.trace_x
 
         """
         #Check if new labels have the right length
@@ -220,7 +213,7 @@ class Comb(object):
         Requires
         -------
         numpy as np
-        trace_x
+        qfunk.utility.trace_x
 
         """
         sys = []
@@ -228,7 +221,7 @@ class Comb(object):
             sys.append(np.array(np.where(np.array(self.spaces) == reducspaces[n])).flatten())
             print(sys)
         sys = np.array(sys).flatten()
-        self.mat = trace_x(self.mat,sys,self.dims)
+        self.mat = qut.trace_x(self.mat,sys,self.dims)
         print(self.mat)
         self.spaces = np.delete(np.array(self.spaces),sys)
         print(self.spaces)
@@ -247,8 +240,9 @@ class Comb(object):
         Requires 
         --------
         numpy as np
-        trace_x
-        trans_x
+        qfunk.utility.trace_x
+        qfunk.utility.trans_x
+        qfunk.utility.sys_permute
 
         Returns
         -------
@@ -303,7 +297,7 @@ class Comb(object):
             #Positon of the common spaces
             PosComm1 = np.array([np.where(Names1 == label)  for label in CommSpaces]).flatten()
             #Tensor product and partial transposition over common spaces
-            Comb1 = np.kron(trans_x(Comb1,PosComm1,dim1),np.eye(ExDim1))
+            Comb1 = np.kron(qut.trans_x(Comb1,PosComm1,dim1),np.eye(ExDim1))
             
             #Tensor the second comb with an identity of the 
             #correct size and rearrange the spaces in the correct order
@@ -321,7 +315,7 @@ class Comb(object):
             dimsCurr = np.array([Dict[Curr] for Curr in CurrentOrder]).flatten()
             #permute spaces of Comb2 according to said permutation
         
-            Comb2 = sys_permute(Comb2, perm, dimsCurr)
+            Comb2 = qut.sys_permute(Comb2, perm, dimsCurr)
             
             #Position of the common systems and dimensions of the spaces in right order
             sys = np.array([np.where(CorrectOrder == label) for label in CommSpaces]).flatten()
@@ -332,7 +326,7 @@ class Comb(object):
             dimsNew = np.delete(dims,sys)
             
             #Resulting link product matrix
-            LinkMat= trace_x(np.dot(Comb1,Comb2), sys, dims)
+            LinkMat= qut.trace_x(np.dot(Comb1,Comb2), sys, dims)
             
             #Change matrix in place if demanded
             if overwrite:
