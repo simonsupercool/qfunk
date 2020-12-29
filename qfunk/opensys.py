@@ -153,6 +153,7 @@ class Comb(object):
         
         #Throw warning if spaces don't amount to the correct dimension
         if len((self.mat).flatten()) != (np.prod(np.array(dims)))**2:
+            print (dims)
             print('Warning: The dimension of the comb does not fit with the given list of dimensions. A comb is returned but you WILL definitely run into trouble!')
     
     
@@ -490,5 +491,4 @@ def choi_to_vec(C,dims):
 	#Now, transpose the axis of the reshaped rho, and shape it back to its 
 	#original form
     return C.reshape(arshape).transpose(transAr).reshape(sh)
-    
     

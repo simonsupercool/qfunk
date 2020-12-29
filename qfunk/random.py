@@ -8,6 +8,7 @@ Available functions: trans_x, TraceS
 """
 
 import numpy as np
+import qfunk.utility as ut
 
 
 def random_unitary(n):
@@ -92,7 +93,7 @@ def bistochastic_gen(n):
         for i in range(n):
             B[:,i] = B[:,i]/np.sum(B[:,i]) 
 
-        for j in range(N):
+        for j in range(n):
             B[j,:] = B[j,:]/np.sum(B[j,:]) 
 
         # check if bistochastic matrix else continue with normalisation procedure
@@ -143,7 +144,7 @@ def MUB_gen(d):
             for l in range(d):
                 el = mub[0,l,:,l].reshape(d,1)
                 state += w**(k*(l**2)+m*l) * el/np.sqrt(d)   
-            mub[k,m,:,:] = np.kron(state, dagger(state))
+            mub[k,m,:,:] = np.kron(state, ut.dagger(state))
 
     return mub
 
@@ -185,5 +186,7 @@ def ent_gen(dim, vec=False):
     if vec:
         return ent
     else:
-        return np.kron(ent, dagger(ent))/dim
+        return np.kron(ent, ut.dagger(ent))/dim
 
+if __name__ == '__main__':
+    a = bistochastic_gen(10)
