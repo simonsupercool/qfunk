@@ -18,11 +18,17 @@ import qfunk.qoptic as qop
 ##############################################
 
 class Test_rand_rho(unittest.TestCase):
+    def __init__(self, *args, **kwargs):
+        # define test dimension 
+        self.dim = 10
+
+        # call init of parent test class
+        super(Test_rand_rho, self).__init__(*args, **kwargs)
 
     # check if randomly produced density operator is valid density matrix
     def test_isdensity(self):
         # generate random state
-        rho = qr.rand_rho(10)
+        rho = qr.rand_rho(self.dim)
 
         # check if trace one
         self.assertTrue(np.isclose(np.trace(rho), 1.0), msg="matrix is not trace one")
@@ -33,7 +39,7 @@ class Test_rand_rho(unittest.TestCase):
         # check if positive semidefinite (matrix is known to be hermitian by this point so use Cholesky)
         try:
             # compute cholesky decomposition with small offset to allow for semidefiniteness
-            np.linalg.cholesky(rho + np.eye(len(rho))*1e-9)
+            np.linalg.cholesky(rho + np.eye(self.dim)*1e-9)
             # assert true outcome
             self.assertTrue(True)
         except LinAlgError:
@@ -41,42 +47,125 @@ class Test_rand_rho(unittest.TestCase):
             self.assertFalse(False, msg="random state is not positive semidefinite")
 
 class Test_random_unitary(unittest.TestCase):
+
+    def __init__(self, *args, **kwargs):
+        # define test dimension 
+        self.dim = 10
+
+        # call init of parent test class
+        super(Test_random_unitary, self).__init__(*args, **kwargs)
+
     # check if generated matrix is indeed unitary
     def test_isunitary(self):
-        # choose dimension of matrix
-        dim = 10
 
         # generate random unitary matrix
-        U = qr.random_unitary(dim)
+        U = qr.random_unitary(self.dim)
 
         # compute left and right products
         left_op = U @ np.conjugate(np.transpose(U))
         right_op = np.conjugate(np.transpose(U)) @ U
 
         # confirm identity equivalency
-        self.assertTrue(np.allclose(left_op, np.eye(dim)), msg="Product of UU^\dagger is not identity")
-        self.assertTrue(np.allclose(right_op, np.eye(dim)), msg="Product of U^\dagger U is not identity")
+        self.assertTrue(np.allclose(left_op, np.eye(self.dim)), msg="Product of UU^\dagger is not identity")
+        self.assertTrue(np.allclose(right_op, np.eye(self.dim)), msg="Product of U^\dagger U is not identity")
 
+
+class Test_MUB_gen(unittest.TestCase):
+
+    # setup test case
+    def __init__(self, *args, **kwargs):
+        # define test dimension (must be prime number)
+        self.dim = 7
+        # generate MUB
+        self.MUB = qr.MUB_gen(self.dim)
+
+        # call init of parent test class
+        super(Test_MUB_gen, self).__init__(*args, **kwargs)
+
+    # check if generated MUB produces positive states
+    def test_isdensity(self):
+
+        # iterate over each density operator and check for PSD
+        for i in range(self.dim+1):
+            for j in range(self.dim):
+
+                # extract element
+                rho = self.MUB[i,j,:,:]
+                # check if trace one
+                self.assertTrue(np.isclose(np.trace(rho), 1.0), msg="MUB is not trace one")
+                # check if hermitian
+                self.assertTrue(np.allclose(rho, np.conj(np.transpose(rho))), msg="MUB is not hermitian")
+
+                # do most expensive check last
+                try:
+                    # compute cholesky decomposition with small offset to allow for semidefiniteness
+                    np.linalg.cholesky(rho + np.eye(len(rho))*1e-9)
+                    # assert true outcome
+                    self.assertTrue(True)
+                except LinAlgError:
+                    # assert False outcome
+                    self.assertFalse(False, msg="MUB state is not positive semidefinite")
+
+
+    # check if generated MUB produces pure states
+    def test_ispure(self):
+
+        # iterate over each density operator and check for purity
+        for i in range(self.dim+1):
+            for j in range(self.dim):
+                rho = self.MUB[i,j,:,:]
+
+                self.assertTrue(np.isclose(np.trace(rho @ rho),1.0), msg="MUB state is not pure")
+
+    # check if all basis collection satisfies MUB property
+    def test_ismub(self):
+        # iterate over each density operator and check for purity
+        for i in range(self.dim+1):
+            for j in range(self.dim):
+                for k in range(self.dim+1):
+                    for l in range(self.dim):
+                        rho1 = self.MUB[i,j,:,:]
+                        rho2 = self.MUB[k,l,:,:]
+
+                        # check for relation
+                        if i==k:
+                            if j==l:
+                                # already checking for purity
+                                continue
+                            # check for orthogonality
+                            else:
+                                self.assertTrue(np.isclose(np.trace(rho1 @ rho2) , 0.0), msg="basis elements are not orthogonal")
+
+                        else:
+                            # check for unbiasedness
+                            self.assertTrue(np.isclose(np.trace(rho1 @ rho2) , 1/self.dim), msg="bases are not unbiased")
+                        
 
 ##############################################
 ###### unit tests for utility operations #####
 ##############################################
 class Test_trace_x(unittest.TestCase):
 
+    def __init__(self, *args, **kwargs):
+        # define test dimension 
+        self.dim_one = 10
+        self.dim_two = 11
+
+        # call init of parent test class
+        super(Test_trace_x, self).__init__(*args, **kwargs)
+
     # define a partial trace over product states
     def test_product(self):
-        # dimension of random states
-        dim_one = 10
-        dim_two = 11
+        # dimension of random state
 
         # construct simple seperable states
-        rand_rho_one = qr.rand_rho(dim_one)
-        rand_rho_two = qr.rand_rho(dim_two)
+        rand_rho_one = qr.rand_rho(self.dim_one)
+        rand_rho_two = qr.rand_rho(self.dim_two)
         # compute tensor product
         state = np.kron(rand_rho_one, rand_rho_two)
         # now compute partial trace over both subsystems
-        ptrace_one = qut.trace_x(state, sys=[1], dim=[dim_one, dim_two])
-        ptrace_two = qut.trace_x(state, sys=[0], dim=[dim_one, dim_two])
+        ptrace_one = qut.trace_x(state, sys=[1], dim=[self.dim_one, self.dim_two])
+        ptrace_two = qut.trace_x(state, sys=[0], dim=[self.dim_one, self.dim_two])
 
         # perform checks on both subsystems
         self.assertTrue(np.allclose(ptrace_one, rand_rho_one), msg="seperable state B not correctly traced out")
@@ -84,37 +173,33 @@ class Test_trace_x(unittest.TestCase):
 
     # test a partial trace over maximally entangled state
     def test_entangled(self):
-        # dimension of subsystems
-        dim = 10
 
         # generate me a maximally entangled density operator
-        ent_state = qr.ent_gen(dim, vec=False)
+        ent_state = qr.ent_gen(self.dim_one, vec=False)
 
         # compute partial trace of both subsytems
-        subsys_one = qut.trace_x(ent_state, sys=[0], dim=[dim,dim])
-        subsys_two = qut.trace_x(ent_state, sys=[1], dim=[dim,dim])
+        subsys_one = qut.trace_x(ent_state, sys=[0], dim=[self.dim_one,self.dim_one])
+        subsys_two = qut.trace_x(ent_state, sys=[1], dim=[self.dim_one,self.dim_one])
 
         # assert both are equal to maximally mixed state
-        self.assertTrue(np.allclose(subsys_one, np.eye(dim)/dim), msg="Partial trace of maximally entangled state is not maximally mixed")
-        self.assertTrue(np.allclose(subsys_two, np.eye(dim)/dim), msg="Partial trace of maximally entangled state is not maximally mixed")
+        self.assertTrue(np.allclose(subsys_one, np.eye(self.dim_one)/self.dim_one), msg="Partial trace of maximally entangled state is not maximally mixed")
+        self.assertTrue(np.allclose(subsys_two, np.eye(self.dim_one)/self.dim_one), msg="Partial trace of maximally entangled state is not maximally mixed")
 
     # test a partial trace over multipartite system
     def test_ABC(self):
-        # dimension of subsystems
-        dim = 10
 
         # generate three random state
-        A = qr.rand_rho(dim)
-        B = qr.rand_rho(dim)
-        C = qr.rand_rho(dim)
+        A = qr.rand_rho(self.dim_one)
+        B = qr.rand_rho(self.dim_one)
+        C = qr.rand_rho(self.dim_one)
 
         # compute product state
         ABC = np.kron(np.kron(A,B),C)
 
         # compute partial trace of all divisions
-        AB = qut.trace_x(ABC, sys=[2], dim=[dim,dim,dim])
-        BC = qut.trace_x(ABC, sys=[0], dim=[dim,dim,dim])
-        AC = qut.trace_x(ABC, sys=[1], dim=[dim,dim,dim])
+        AB = qut.trace_x(ABC, sys=[2], dim=[self.dim_one]*3)
+        BC = qut.trace_x(ABC, sys=[0], dim=[self.dim_one]*3)
+        AC = qut.trace_x(ABC, sys=[1], dim=[self.dim_one]*3)
 
 
         # assert all are equal to sub products
@@ -125,20 +210,34 @@ class Test_trace_x(unittest.TestCase):
 
 class Test_dagger(unittest.TestCase):
 
+    def __init__(self, *args, **kwargs):
+        # define test dimension 
+        self.dim = 10
+
+        # call init of parent test class
+        super(Test_dagger, self).__init__(*args, **kwargs)
+
     # define test of hermitian conjugate
     def test_hermitian_conjugate(self):
         # generate random state
-        matrix = np.tril(np.ones((10,10))) + 1j*np.triu(np.ones((10,10)))
+        matrix = np.tril(np.ones((self.dim,self.dim))) + 1j*np.triu(np.ones((self.dim,self.dim)))
         # check if dagger is performing correct operation on hermitian matrix
         self.assertTrue(np.allclose(np.conj(np.transpose(matrix)), qut.dagger(matrix)), msg="Hermitian conjugate not correctly computed")
 
 
 class Test_eyelike(unittest.TestCase):
+    def __init__(self, *args, **kwargs):
+        # define test dimension 
+        self.dim = 10
+
+        # call init of parent test class
+        super(Test_eyelike, self).__init__(*args, **kwargs)
+
     # define test for identity generation of same dimension
     def test_generation(self):
         # generate identity matrix
-        matrix_eye = np.eye(10)
-        matrix_like = np.ones(10)
+        matrix_eye = np.eye(self.dim)
+        matrix_like = np.ones(self.dim)
 
         # test function
         self.assertTrue(np.allclose(matrix_eye, qut.eye_like(matrix_like)),msg="Generated matrix not similar to identity")
@@ -150,31 +249,32 @@ class Test_eyelike(unittest.TestCase):
 ##############################################
 
 class Test_symmetric_map(unittest.TestCase):
+    def __init__(self, *args, **kwargs):
+        # define number of modes and photons 
+        self.m_num = 4
+        self.p_num = 2
+
+        # compute system dimension
+        self.dim = comb(self.m_num+self.p_num-1,self.p_num, exact=True)
+
+        # compute symmetric operator
+        self.S = qop.symmetric_map(self.m_num, self.p_num)
+
+        # call init of parent test class
+        super(Test_symmetric_map, self).__init__(*args, **kwargs)
+
     # define test to check correct 
     def test_dimension(self):
-        # define number of modes and photons
-        m_num = 4
-        p_num = 2
-
-        # compute symmetric matrix
-        S = qop.symmetric_map(m_num, p_num)
         # computs shape of operator
-        dims = np.shape(S)
+        dims = np.shape(self.S)
         # check output dimension is correct
-        self.assertTrue(dims[0]==comb(m_num+p_num-1,p_num, exact=True))
+        self.assertTrue(dims[0]==self.dim)
         # check input direction is correct
-        self.assertTrue(dims[1]==m_num**p_num)
+        self.assertTrue(dims[1]==self.m_num**self.p_num)
 
     def test_isometry(self):
-        # define number of modes and photons
-        m_num = 4
-        p_num = 2
-
-        # compute symmetric matrix
-        S = qop.symmetric_map(m_num, p_num)
-            
         # test for isometric transformation in direction of map (inverse is not one obviously)
-        self.assertTrue(np.allclose(S @ np.transpose(S), np.eye(comb(m_num+p_num-1,p_num, exact=True))))
+        self.assertTrue(np.allclose(self.S @ np.transpose(self.S), np.eye(self.dim)))
 
 
 ##############################################
@@ -186,59 +286,56 @@ class Test_Comb(unittest.TestCase):
     #########
     #Check Link Product
     #########
+    def __init__(self, *args, **kwargs):
+        # define test dimension 
+        self.dim = 12
+
+        # define subsystem dimensions
+        self.order1 = [3,2,2]
+        self.order2 = [2,3,2]
+
+        # call init of parent test class
+        super(Test_Comb, self).__init__(*args, **kwargs)
+
     #check if Link Product of positive matrices is positive
     def test_positive(self):
-        # define test dimension
-        dim = 12
-        # define comb orders
-        order1 = [3,2,2]
-        order2 = [2,3,2]
 
         #generate random states, i.e., positive matrices
-        c_1 = qr.rand_rho(dim)
-        c_2 = qr.rand_rho(dim)
-        comb_1 = qos.Comb(c_1, order1, ['A','B','C'])
-        comb_2 = qos.Comb(c_2, order2, ['C','A','D'])
+        c_1 = qr.rand_rho(self.dim)
+        c_2 = qr.rand_rho(self.dim)
+        comb_1 = qos.Comb(c_1, self.order1, ['A','B','C'])
+        comb_2 = qos.Comb(c_2, self.order2, ['C','A','D'])
 
         #check if link product is positive
         self.assertTrue(min(np.real(LA.eigvals(comb_1.link(comb_2).mat))) >= 0, msg="Link product not positive")
         
     #check if Link Product of hermitian matrices is positive
     def test_hermitian(self):
-        # define test dimension
-        dim = 12
-        # define comb orders
-        order1 = [3,2,2]
-        order2 = [2,3,2]
 
         #generate random hermitian matrices
-        c_1 = (np.random.rand(dim**2) + 1j*np.random.rand(dim**2)).reshape((dim,dim))
+        c_1 = (np.random.rand(self.dim**2) + 1j*np.random.rand(self.dim**2)).reshape((self.dim,self.dim))
         c_1 = 0.5*(c_1 + np.transpose(np.conjugate(c_1)))
-        c_2 = (np.random.rand(dim**2) + 1j*np.random.rand(dim**2)).reshape((dim,dim))
+        c_2 = (np.random.rand(self.dim**2) + 1j*np.random.rand(self.dim**2)).reshape((self.dim,self.dim))
         c_2 = 0.5*(c_2 + np.transpose(np.conjugate(c_2)))
-        comb_1 = qos.Comb(c_1, order1, ['A','B','C'])
-        comb_2 = qos.Comb(c_2, order2, ['C','A','D'])
+        comb_1 = qos.Comb(c_1, self.order1, ['A','B','C'])
+        comb_2 = qos.Comb(c_2, self.order2, ['C','A','D'])
         c_3 = comb_1.link(comb_2).mat
         #check if link product is positive
         self.assertTrue(np.allclose(qut.dagger(c_3), c_3), msg="Link product not Hermitian")
     
     #check if Link Product is commutative (up to reordering)
     def test_commute(self):
-        # define test dimension
-        dim = 12
-        # define comb orders
-        order1 = [3,2,2]
-        order2 = [2,3,2]
 
         #generate random complex matrices
-        c_1 = (np.random.rand(dim**2) + 1j*np.random.rand(dim**2)).reshape((dim, dim))
-        c_2 = (np.random.rand(dim**2) + 1j*np.random.rand(dim**2)).reshape((dim, dim))
-        comb_1 = qos.Comb(c_1, order1, ['A','B','C'])
-        comb_2 = qos.Comb(c_2, order2, ['C','A','D'])
+        c_1 = (np.random.rand(self.dim**2) + 1j*np.random.rand(self.dim**2)).reshape((self.dim, self.dim))
+        c_2 = (np.random.rand(self.dim**2) + 1j*np.random.rand(self.dim**2)).reshape((self.dim, self.dim))
+        comb_1 = qos.Comb(c_1, self.order1, ['A','B','C'])
+        comb_2 = qos.Comb(c_2, self.order2, ['C','A','D'])
         
         c_3 = comb_1.link(comb_2).mat
         c_4 = comb_2.link(comb_1).mat
         
+        # choose subsystems
         self.assertTrue(np.allclose(qut.sys_permute(c_3, [1,0], [2,2]),c_4), msg="Link product not commutative")
 
     
