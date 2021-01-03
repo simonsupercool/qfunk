@@ -418,7 +418,55 @@ class Comb(object):
             print(str(nam) + ':', d)
             Dict[nam] = d
         return Dict
+    
+    def is_causally_ordered(self, spaces, eps=1e-6):
+        """
         
+        Parameters
+        ----------
+        self
+        spaces: list/array
+        eps:    float
+           
+        Requires 
+        --------
+        nothing
+    
+        Returns
+        -------
+        True if the comb is ordered according to the order given by the labels given in spaces, False otherwise.
+        If the labels in spaces do not agree with the labels of the comb, the function returns an error. Causality check is 
+        made up to numerical tolerance give by eps
+            
+        """
+        
+        #Throw warning if labels appear more than once
+        unique, count = np.unique(self.spaces,return_counts=True)
+        if sum(count) > len(unique):
+            print('Warning: Some of your labels appear more than once. Causal order can not be checked unambiguously')
+            return False
+            
+        else:
+            Spa = self.spaces
+            if set(spaces) != set(Spa):
+                print('The provided spaces do not match the labels of the comb.')
+                return False
+            
+            else: 
+                dims = self.dims
+                Comb = self.mat
+                last_space = spaces[-1]
+                #Check if comb ends on an output space. If so, check remaining hierarchy of causality conditions
+                if np.linalg.norm(qut.projl(Comb,np.where(Spa == last_space), self.dim_of_space(last_space)) - Comb) <= eps:
+                    np.delete(Spa,-1)
+                    for label in np.array(spaces)[::-1]:
+                        
+                
+                else:
+                    #Check if comb ends on an input space. If so,  check remaining hierarchy of causality conditions
+                    if a==b:
+                        return True
+                    else:
 
 
 
@@ -448,7 +496,7 @@ def wocb():
     sigmaZ = np.array([[1, 0], [0,-1]]);
     
     #Definition of Wocb according to arxiv.1105.4464, Eq. (7)
-    return 1./4*(tn_product(ident,ident,ident,ident) + 1/np.sqrt(2)*(tn_product(ident,sigmaZ,sigmaZ,ident) + tn_product(sigmaZ,ident,sigmaX,sigmaZ)))
+    return 1./4*(qut.tn_product(ident,ident,ident,ident) + 1/np.sqrt(2)*(qut.tn_product(ident,sigmaZ,sigmaZ,ident) + qut.tn_product(sigmaZ,ident,sigmaX,sigmaZ)))
 
 
 
