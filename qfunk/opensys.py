@@ -136,18 +136,18 @@ class Comb(object):
     """
     
     def __init__(self,mat,dims,spaces):
-        self.mat = mat
-        self.dims = dims
-        self.spaces = spaces
+        self.mat = np.array(mat)
+        self.dims = np.array(dims)
+        self.spaces = np.array(spaces)
         #Throw warning if labels appear more than once
         unique, count = np.unique(self.spaces,return_counts=True)
         if sum(count) > len(unique):
-            print('Warning: Some of your labels appear more than once. A comb is returned but you WILL definitely run into trouble!')
+            warnings.warn('Warning: Some of your labels appear more than once. A comb is returned but you WILL definitely run into trouble!', RuntimeWarning)
         
         #Throw warning if spaces don't amount to the correct dimension
         if len((self.mat).flatten()) != (np.prod(np.array(dims)))**2:
             print (dims)
-            print('Warning: The dimension of the comb does not fit with the given list of dimensions. A comb is returned but you WILL definitely run into trouble!')
+            warnings.warn('Warning: The dimension of the comb does not fit with the given list of dimensions. A comb is returned but you WILL definitely run into trouble!', RuntimeWarning)
     
     
         
@@ -345,11 +345,11 @@ class Comb(object):
            
         Requires 
         --------
-        nnumpy as np
+        numpy as np
 
         Returns
         -------
-        dimension of spaces labeled by the labels in the list labels
+        dimension of spaces labeled by the labels in the list labels.
     
         
         """
@@ -385,12 +385,13 @@ class Comb(object):
         for n in np.arange(len(Names)):
             Dict[Names[n]] = dims[n]
         
-        #Print dimensions of the given labels and store in array
+        #Store in array
         dims_of_labels = []
         for lab in lab_cop:
             dim = Dict[lab]
-            print(str(lab) + ':', Dict[lab])
+            #print(str(lab) + ':', Dict[lab])
             dims_of_labels.append(dim)
+
         return np.array(dims_of_labels)
     
     def dims_of_all_spaces(self):
@@ -402,7 +403,7 @@ class Comb(object):
            
         Requires 
         --------
-        nothing
+        numpy as np
     
         Returns
         -------
@@ -419,6 +420,59 @@ class Comb(object):
             Dict[nam] = d
         return Dict
     
+    def pos_of_space(self,labels):
+        """
+        
+        Parameters
+        ----------
+        self
+        labels: list of labels
+           
+        Requires 
+        --------
+        numpy as np
+
+        Returns
+        -------
+        position of the spaces labeled by the labels in the list labels
+    
+        
+        """
+        #get label information from comb
+        Names = np.array(self.spaces)
+        
+        #Make local copy of labels to work with
+        lab_cop = labels.copy()
+        
+        
+        #Make sure that none of the labels appears twice, if so, throw error and stop computation
+        unique, count = np.unique(labels,return_counts=True)
+        if sum(count) > len(unique):
+            lab_cop = unique
+            warnings.warn('Warning: The provided list of labels contains duplicates. The position of the spaces cannot be uniquely assigned. Nothing is returned.', RuntimeWarning)
+            return
+           
+        #Make sure the labels actually all occur, if not, remove those that don't
+        contains_check = np.in1d(lab_cop, Names)
+        if sum(contains_check) != len(lab_cop):
+            if sum(contains_check) == 0:
+                warnings.warn('Warning: None of the provided labels actually occured, computation did not return a result', RuntimeWarning)
+                return
+            else:
+                lab_cop = np.array(lab_cop)[np.where(contains_check)]
+                warnings.warn('Warning: Not all of the provided labels actually occur. Computation continues with the simplified list: {}.'.format(lab_cop), RuntimeWarning )
+            
+        
+        #get label information from comb
+        spac = np.array(self.spaces)
+        
+        #find position of given spaces
+        pos = []
+        for lab in lab_cop:
+            pos.append(np.where(spac == lab)[0][0])
+        return np.array(pos)
+    
+    
     def is_causally_ordered(self, spaces, eps=1e-6):
         """
         
@@ -430,46 +484,139 @@ class Comb(object):
            
         Requires 
         --------
-        nothing
+        numpy as np
+        qfunk.utility.projl
+        
     
         Returns
         -------
         True if the comb is ordered according to the order given by the labels given in spaces, False otherwise.
         If the labels in spaces do not agree with the labels of the comb, the function returns an error. Causality check is 
-        made up to numerical tolerance give by eps
+        made up to numerical tolerance give by eps.
+        
+        Causality conditions are checked by using the projection operator L_X of arxiv:1506.03776
+        
+        Important: This check only checks the trace hierarchy of and positivity, but not the normalization of the comb
             
         """
+        Spa = self.spaces
+        Comb = self.mat
+        
+        #Check Hermiticity
+        if np.linalg.norm(Comb - qut.dagger(Comb)) >= eps:
+            print('Comb is not Hermitian. FALSE is returned.')
+            return False
+        
+        
+        #Check positivity
+        if min(np.linalg.eigvalsh(Comb).real) <= -eps:
+            print('Comb is not positive. FALSE is returned')
+            return False
+            
+        
+        #Deal with single system combs
+        if len(Spa)==1:
+            print('This comb is only defined on one system. Causal order does not make much sense here. Causality is checked by checking of normalization of the comb, independent of the given spaces and order thereof.')
+            if abs(np.trace(Comb) -1) <= eps:
+                return True
+            else:
+                return False
+        
         
         #Throw warning if labels appear more than once
-        unique, count = np.unique(self.spaces,return_counts=True)
+        unique, count = np.unique(Spa,return_counts=True)
         if sum(count) > len(unique):
-            print('Warning: Some of your labels appear more than once. Causal order can not be checked unambiguously')
+            warnings.warn('Warning: Some of your labels appear more than once. Causal order cannot be checked unambiguously. FALSE is returned, but there is a labelling problem.', RuntimeWarning)
             return False
             
         else:
-            Spa = self.spaces
+            #Throw warning if given labels do not coincide with actual labels of the comb
             if set(spaces) != set(Spa):
-                print('The provided spaces do not match the labels of the comb.')
+                warnings.warn('The provided spaces do not match the labels of the comb. FALSE is returned, but there is a labelling problem', RuntimeWarning)
                 return False
             
             else: 
                 dims = self.dims
-                Comb = self.mat
-                last_space = spaces[-1]
+                sys_tr = [spaces[-1]]
                 #Check if comb ends on an output space. If so, check remaining hierarchy of causality conditions
-                if np.linalg.norm(qut.projl(Comb,np.where(Spa == last_space), self.dim_of_space(last_space)) - Comb) <= eps:
-                    np.delete(Spa,-1)
-                    for label in np.array(spaces)[::-1]:
+                if np.linalg.norm(qut.projl(Comb,self.pos_of_space(sys_tr), dims) - Comb) <= eps:
+                    CausOrd = True
+                    spaces = np.delete(spaces,-1)
+                    #Check hierarchy of trace conditions
+                    while len(spaces)>1 and CausOrd:
+                        sys_tr.append(spaces[-1])
+                        sys_tr_cop = sys_tr.copy()
+                        sys_tr.append(spaces[-2])
+                        if np.linalg.norm(qut.projl(Comb,self.pos_of_space(sys_tr_cop), dims) - qut.projl(Comb,self.pos_of_space(sys_tr), dims)) <= eps:
+                            spaces = np.delete(spaces,[-1,-2])
+                        else:
+                            CausOrd = False
+                    return CausOrd
                         
-                
                 else:
+                    sys_tr_cop = sys_tr.copy()
+                    sys_tr.append(spaces[-2])
+                    spaces = np.delete(spaces,[-2,-1])
                     #Check if comb ends on an input space. If so,  check remaining hierarchy of causality conditions
-                    if a==b:
-                        return True
+                    if np.linalg.norm(qut.projl(Comb,self.pos_of_space(sys_tr_cop),dims) - qut.projl(Comb,self.pos_of_space(sys_tr), dims)) <= eps:
+                        CausOrd = True
+                        #Check hierarchy of trace conditions
+                        while len(spaces)>1 and CausOrd:
+                            sys_tr.append(spaces[-1])
+                            sys_tr_cop = sys_tr.copy()
+                            sys_tr.append(spaces[-2])
+                            if np.linalg.norm(qut.projl(Comb,self.pos_of_space(sys_tr_cop), dims) - qut.projl(Comb,self.pos_of_space(sys_tr), dims) <= eps):
+                               spaces = np.delete(spaces,[-2,-1])
+                            else:
+                                CausOrd = False
+                        return CausOrd
                     else:
+                        return False
+        
+    def is_process_matrix(self, eps=1e-6):
+        """
+        
+        Parameters
+        ----------
+        self
+        eps:    float
+           
+        Requires 
+        --------
+        numpy as np
+        qfunk.utility.Lv
+    
+        Returns
+        -------
+        True if the comb is a proper process matrix, False otherwise. 
+        
+        Check from arxiv:1506.03776 is used.
+        
+        Important: So far only meaningful for matrices on 4 spaces.
+            
+        """
+        dims = self.dims
+        Comb = self.mat
+            
+        #Check Hermiticity
+        if np.linalg.norm(Comb - qut.dagger(Comb)) >= eps:
+            print('Comb is not Hermitian. FALSE is returned.')
+            return False
+            
+            
+        #Check positivity
+        if min(np.linalg.eigvalsh(Comb).real) <= -eps:
+            print('Comb is not positive. FALSE is returned')
+            return False
+    
+        #Check that comb satisfies the correct projecteion property
+        if np.linalg.norm(qut.Lv(Comb,dims) - Comb) >= eps:
+            print('Comb does not live int he correct linear subspace')
+            return False
+        
+        return True
 
-
-
+        
 def wocb():
     """
     
