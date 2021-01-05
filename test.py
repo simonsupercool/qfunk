@@ -370,7 +370,46 @@ class Test_Comb(unittest.TestCase):
         original_spaces[exchanged_spaces] = Testlabels[exchanged_spaces]
         comb_1.relabelInd(oldlab,newlab)
         self.assertTrue((comb_1.spaces == original_spaces).all(), msg="RelabelInd function of comb class does not work")
+        
+    #########
+    #Check is_causally_ordered functions
+    #########
+    def test_is_causal(self):
+        #unnormalized maximally entangled state
+        MaxEnt = np.array([[1,0,0,1],[0,0,0,0],[0,0,0,0],[1,0,0,1]])
+        
+        #Generate combs that end and start on different types of spaces (input/output)
+        
+        #four Hilbert spaces, begins on output, ends on input
+        Mat1 = np.kron(MaxEnt,MaxEnt)
+        spaces1 = ['A','B','C','D']
+        dims1 = [2,2,2,2]
+        comb_1 = qos.Comb(mat=Mat1,dims=dims1,spaces=spaces1)
+        
+        #three Hilbert spaces, begins on output, ends on output
+        Mat2 = np.kron(MaxEnt,np.eye(3))
+        spaces2 = ['A','B','C']
+        dims2 = [2,2,3]
+        comb_2 = qos.Comb(mat=Mat2,dims=dims2,spaces=spaces2)
+        
+        #three Hilbert spaces, begins on input, ends on input
+        Mat3 = np.kron(np.eye(3),MaxEnt)
+        spaces3 = ['A','B','C']
+        dims3 = [3,2,2]
+        comb_3 = qos.Comb(mat=Mat3,dims=dims3,spaces=spaces3)
+        
+        #three Hilbert spaces, begins on input, ends on input, different structure than comb_3
+        Mat4 = qut.sys_permute(Mat3,[1,0,2],[3,2,2])
+        spaces4 = ['A','B','C']
+        dims4 = [2,3,2]
+        comb_4 = qos.Comb(mat=Mat4,dims=dims4,spaces=spaces4)
     
+        #Check if causality_check functions properly
+        self.assertTrue(comb_1.is_causally_ordered(spaces1), msg="Causality check function of comb class does not work")
+        self.assertTrue(comb_2.is_causally_ordered(spaces2), msg="Causality check function of comb class does not work")
+        self.assertTrue(comb_3.is_causally_ordered(spaces3), msg="Causality check function of comb class does not work")
+        self.assertTrue(comb_4.is_causally_ordered(spaces4), msg="Causality check function of comb class does not work")
+        
 # run tests
 if __name__ == '__main__':
     unittest.main(verbosity=2)

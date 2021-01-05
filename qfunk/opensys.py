@@ -126,6 +126,9 @@ class Comb(object):
     link:               Allows one to compute the link product with another comb
     dim_of_space:       Returns the dimensions of given spaces of the comb
     dims_of_all_spaces: Returns dimensions of all spaces as dictionary
+    pos_of_space:       Returns the position of a list of labels
+    is_causally_ordered: Allows one to check whether the comb is causally ordered in a certain way
+    is_process_matrix:  Allows one to check whether comb is a proper process matrix (only works for four Hilbert spaces)
     
     Requires 
     --------
@@ -434,7 +437,7 @@ class Comb(object):
 
         Returns
         -------
-        position of the spaces labeled by the labels in the list labels
+        list of positions of the spaces labeled by the labels in the list labels
     
         
         """
@@ -499,39 +502,38 @@ class Comb(object):
         Important: This check only checks the trace hierarchy of and positivity, but not the normalization of the comb
             
         """
-        Spa = self.spaces
-        Comb = self.mat
+
         
         #Check Hermiticity
-        if np.linalg.norm(Comb - qut.dagger(Comb)) >= eps:
+        if np.linalg.norm(self.mat - qut.dagger(self.mat)) >= eps:
             print('Comb is not Hermitian. FALSE is returned.')
             return False
         
         
         #Check positivity
-        if min(np.linalg.eigvalsh(Comb).real) <= -eps:
+        if min(np.linalg.eigvalsh(self.mat).real) <= -eps:
             print('Comb is not positive. FALSE is returned')
             return False
             
         
         #Deal with single system combs
-        if len(Spa)==1:
+        if len(self.spaces)==1:
             print('This comb is only defined on one system. Causal order does not make much sense here. Causality is checked by checking of normalization of the comb, independent of the given spaces and order thereof.')
-            if abs(np.trace(Comb) -1) <= eps:
+            if abs(np.trace(self.mat) -1) <= eps:
                 return True
             else:
                 return False
         
         
         #Throw warning if labels appear more than once
-        unique, count = np.unique(Spa,return_counts=True)
+        unique, count = np.unique(self.spaces,return_counts=True)
         if sum(count) > len(unique):
             warnings.warn('Warning: Some of your labels appear more than once. Causal order cannot be checked unambiguously. FALSE is returned, but there is a labelling problem.', RuntimeWarning)
             return False
             
         else:
             #Throw warning if given labels do not coincide with actual labels of the comb
-            if set(spaces) != set(Spa):
+            if set(spaces) != set(self.spaces):
                 warnings.warn('The provided spaces do not match the labels of the comb. FALSE is returned, but there is a labelling problem', RuntimeWarning)
                 return False
             
@@ -539,7 +541,7 @@ class Comb(object):
                 dims = self.dims
                 sys_tr = [spaces[-1]]
                 #Check if comb ends on an output space. If so, check remaining hierarchy of causality conditions
-                if np.linalg.norm(qut.projl(Comb,self.pos_of_space(sys_tr), dims) - Comb) <= eps:
+                if np.linalg.norm(qut.projl(self.mat,self.pos_of_space(sys_tr), dims) - self.mat) <= eps:
                     CausOrd = True
                     spaces = np.delete(spaces,-1)
                     #Check hierarchy of trace conditions
@@ -547,7 +549,7 @@ class Comb(object):
                         sys_tr.append(spaces[-1])
                         sys_tr_cop = sys_tr.copy()
                         sys_tr.append(spaces[-2])
-                        if np.linalg.norm(qut.projl(Comb,self.pos_of_space(sys_tr_cop), dims) - qut.projl(Comb,self.pos_of_space(sys_tr), dims)) <= eps:
+                        if np.linalg.norm(qut.projl(self.mat,self.pos_of_space(sys_tr_cop), dims) - qut.projl(self.mat,self.pos_of_space(sys_tr), dims)) <= eps:
                             spaces = np.delete(spaces,[-1,-2])
                         else:
                             CausOrd = False
@@ -558,14 +560,14 @@ class Comb(object):
                     sys_tr.append(spaces[-2])
                     spaces = np.delete(spaces,[-2,-1])
                     #Check if comb ends on an input space. If so,  check remaining hierarchy of causality conditions
-                    if np.linalg.norm(qut.projl(Comb,self.pos_of_space(sys_tr_cop),dims) - qut.projl(Comb,self.pos_of_space(sys_tr), dims)) <= eps:
+                    if np.linalg.norm(qut.projl(self.mat,self.pos_of_space(sys_tr_cop),dims) - qut.projl(self.mat,self.pos_of_space(sys_tr), dims)) <= eps:
                         CausOrd = True
                         #Check hierarchy of trace conditions
                         while len(spaces)>1 and CausOrd:
                             sys_tr.append(spaces[-1])
                             sys_tr_cop = sys_tr.copy()
                             sys_tr.append(spaces[-2])
-                            if np.linalg.norm(qut.projl(Comb,self.pos_of_space(sys_tr_cop), dims) - qut.projl(Comb,self.pos_of_space(sys_tr), dims) <= eps):
+                            if np.linalg.norm(qut.projl(self.mat,self.pos_of_space(sys_tr_cop), dims) - qut.projl(self.mat,self.pos_of_space(sys_tr), dims) <= eps):
                                spaces = np.delete(spaces,[-2,-1])
                             else:
                                 CausOrd = False
@@ -595,22 +597,20 @@ class Comb(object):
         Important: So far only meaningful for matrices on 4 spaces.
             
         """
-        dims = self.dims
-        Comb = self.mat
             
         #Check Hermiticity
-        if np.linalg.norm(Comb - qut.dagger(Comb)) >= eps:
+        if np.linalg.norm(self.mat - qut.dagger(self.mat)) >= eps:
             print('Comb is not Hermitian. FALSE is returned.')
             return False
             
             
         #Check positivity
-        if min(np.linalg.eigvalsh(Comb).real) <= -eps:
+        if min(np.linalg.eigvalsh(self.mat).real) <= -eps:
             print('Comb is not positive. FALSE is returned')
             return False
     
         #Check that comb satisfies the correct projecteion property
-        if np.linalg.norm(qut.Lv(Comb,dims) - Comb) >= eps:
+        if np.linalg.norm(qut.Lv(self.mat,self.dims) - self.mat) >= eps:
             print('Comb does not live int he correct linear subspace')
             return False
         
