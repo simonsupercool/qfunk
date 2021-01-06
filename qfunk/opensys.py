@@ -498,8 +498,6 @@ class Comb(object):
         made up to numerical tolerance give by eps.
         
         Causality conditions are checked by using the projection operator L_X of arxiv:1506.03776
-        
-        Important: This check only checks the trace hierarchy of and positivity, but not the normalization of the comb
             
         """
 
@@ -540,6 +538,7 @@ class Comb(object):
             else: 
                 dims = self.dims
                 sys_tr = [spaces[-1]]
+                spaces_for_norm = spaces.copy() #copy of spaces to check normalization later
                 #Check if comb ends on an output space. If so, check remaining hierarchy of causality conditions
                 if np.linalg.norm(qut.projl(self.mat,self.pos_of_space(sys_tr), dims) - self.mat) <= eps:
                     CausOrd = True
@@ -552,6 +551,16 @@ class Comb(object):
                         if np.linalg.norm(qut.projl(self.mat,self.pos_of_space(sys_tr_cop), dims) - qut.projl(self.mat,self.pos_of_space(sys_tr), dims)) <= eps:
                             spaces = np.delete(spaces,[-1,-2])
                         else:
+                            CausOrd = False
+                    
+                    #Check that normalization is correct if causal ordering so far fits
+                    if CausOrd:
+                        #collect output spaces
+                        output_spaces = spaces_for_norm[::-2]
+                        dim_correct = np.prod(self.dim_of_space(output_spaces))
+                        dim_actual = np.trace(self.mat)
+                        if abs(dim_correct - dim_actual) >= eps:
+                            print('FALSE is returned for the causal order, but only due to incorrect normalization. The trace of the comb should be equal to {} but is equal to {}'.format(dim_correct,dim_actual))
                             CausOrd = False
                     return CausOrd
                         
@@ -571,6 +580,16 @@ class Comb(object):
                                spaces = np.delete(spaces,[-2,-1])
                             else:
                                 CausOrd = False
+                         
+                        #Check that normalization is correct if causal ordering so far fits
+                        if CausOrd:
+                            #collect output spaces
+                            output_spaces = spaces_for_norm[-2::-2]
+                            dim_correct = np.prod(self.dim_of_space(output_spaces))
+                            dim_actual = np.trace(self.mat)
+                            if abs(dim_correct - dim_actual) >= eps:
+                                print('FALSE is returned for the causal order, but only due to incorrect normalization. The trace of the comb should be equal to {} but is equal to {}'.format(dim_correct,dim_actual))
+                                CausOrd = False  
                         return CausOrd
                     else:
                         return False
