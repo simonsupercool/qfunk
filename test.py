@@ -6,7 +6,7 @@ from scipy.special import comb
 from numpy import linalg as LA
 
 import qfunk.utility as qut
-import qfunk.random as qr
+import qfunk.generator as qg
 import qfunk.opensys as qos
 import qfunk.qoptic as qop
 
@@ -28,7 +28,7 @@ class Test_rand_rho(unittest.TestCase):
     # check if randomly produced density operator is valid density matrix
     def test_isdensity(self):
         # generate random state
-        rho = qr.rand_rho(self.dim)
+        rho = qg.rand_rho(self.dim)
 
         # check if trace one
         self.assertTrue(np.isclose(np.trace(rho), 1.0), msg="matrix is not trace one")
@@ -59,7 +59,7 @@ class Test_random_unitary(unittest.TestCase):
     def test_isunitary(self):
 
         # generate random unitary matrix
-        U = qr.random_unitary(self.dim)
+        U = qg.random_unitary(self.dim)
 
         # compute left and right products
         left_op = U @ np.conjugate(np.transpose(U))
@@ -77,7 +77,7 @@ class Test_MUB_gen(unittest.TestCase):
         # define test dimension (must be prime number)
         self.dim = 7
         # generate MUB
-        self.MUB = qr.MUB_gen(self.dim)
+        self.MUB = qg.MUB_gen(self.dim)
 
         # call init of parent test class
         super(Test_MUB_gen, self).__init__(*args, **kwargs)
@@ -159,8 +159,8 @@ class Test_trace_x(unittest.TestCase):
         # dimension of random state
 
         # construct simple seperable states
-        rand_rho_one = qr.rand_rho(self.dim_one)
-        rand_rho_two = qr.rand_rho(self.dim_two)
+        rand_rho_one = qg.rand_rho(self.dim_one)
+        rand_rho_two = qg.rand_rho(self.dim_two)
         # compute tensor product
         state = np.kron(rand_rho_one, rand_rho_two)
         # now compute partial trace over both subsystems
@@ -175,7 +175,7 @@ class Test_trace_x(unittest.TestCase):
     def test_entangled(self):
 
         # generate me a maximally entangled density operator
-        ent_state = qr.ent_gen(self.dim_one, vec=False)
+        ent_state = qg.ent_gen(self.dim_one, vec=False)
 
         # compute partial trace of both subsytems
         subsys_one = qut.trace_x(ent_state, sys=[0], dim=[self.dim_one,self.dim_one])
@@ -189,9 +189,9 @@ class Test_trace_x(unittest.TestCase):
     def test_ABC(self):
 
         # generate three random state
-        A = qr.rand_rho(self.dim_one)
-        B = qr.rand_rho(self.dim_one)
-        C = qr.rand_rho(self.dim_one)
+        A = qg.rand_rho(self.dim_one)
+        B = qg.rand_rho(self.dim_one)
+        C = qg.rand_rho(self.dim_one)
 
         # compute product state
         ABC = np.kron(np.kron(A,B),C)
@@ -301,8 +301,8 @@ class Test_Comb(unittest.TestCase):
     def test_positive(self):
 
         #generate random states, i.e., positive matrices
-        c_1 = qr.rand_rho(self.dim)
-        c_2 = qr.rand_rho(self.dim)
+        c_1 = qg.rand_rho(self.dim)
+        c_2 = qg.rand_rho(self.dim)
         comb_1 = qos.Comb(c_1, self.order1, ['A','B','C'])
         comb_2 = qos.Comb(c_2, self.order2, ['C','A','D'])
 

@@ -148,6 +148,7 @@ def number_states(m_num,p_num):
     Requires
     -----------
     numpy as np
+    scipy.special.comb
     
     Returns
     -----------
@@ -175,3 +176,86 @@ def number_states(m_num,p_num):
     return uniques
 
 
+def fock_dim(m_num, p_num, full=False):
+    """
+    Computes dimension of symemtric Fock space given m_num modes and p_num bosons. 
+    Parameters
+    -----------
+    m_num: number of bosonic modes in system 
+    p_num: total number of bosons in system
+    full: boolean specifying whether to return the dimenion of the direct sum space or just the largest
+    
+    Requires
+    -----------
+    scipy.special.comb
+
+    
+    Returns
+    -----------
+    integer representing the dimension
+    
+    """
+    if full:
+        # base dimenion is vacumn state
+        dim = 1
+        for p in range(1,p_num+1):
+            # compute dimenion of each photon subspace
+            dim += comb(m_num+p-1,p)
+        return dim
+    else:
+        return comb(m_num+p_num-1,p_num)
+
+
+def opt_subalgebra_gen(m_num, p_num):
+    """
+    Outputs a basis for the generating algebra of unitary transformations on m_num modes and p_num bosons.
+
+    Ref: arXiv:1901.06178 
+
+    Parameters
+    -----------
+    m_num: number of bosonic modes in system 
+    p_num: total number of bosons in system
+    
+    Requires
+    -----------
+    numpy as np
+    scipy.special.comb
+
+    
+    Returns
+    -----------
+    m_num choose p_num x m_num numpy array of bosonic number states
+
+
+    
+    """
+
+    # compute dimension of isometric image
+    dim = fock_dim(m_num, p_num, full=False)
+
+    # preallocate single photon basis array
+    basis = np.eye(m_num)
+    algebra_basis = np.zeros((m_num**2, m_num, m_num), dtype=np.complex128)
+
+    # iterate over algebra elements
+    cnt = 0
+    for j in range(dim):
+        for k in range(dim):
+            ej = basis[j,:].reshape([-1,1])
+            ek = basis[k,:].reshape([-1,1]) 
+            algebra_basis[cnt,:,:] = (np.kron(ej, dagger(ek)) + np.kron(ek,dagger(ej)))*(1j/2)
+            cnt += 1
+
+    for j in range(dim):
+        for k in range(j):
+            ej = basis[j,:].reshape([-1,1])
+            ek = basis[k,:].reshape([-1,1]) 
+            algebra_basis[cnt,:,:] = (np.kron(ej, dagger(ek)) - np.kron(ek,dagger(ej)))*(1j/2)
+
+            cnt += 1
+
+    print(algebra_basis[0,:,:])
+
+if __name__ == '__main__':
+    opt_subalgebra_gen(2,2)
