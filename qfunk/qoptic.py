@@ -1,8 +1,11 @@
 
 import numpy as np
 from scipy.special import comb
+from scipy.sparse import csc_matrix
 
 import qfunk.utility as qut
+
+
 
 def dirsum(arrayset, combination):
     """
@@ -49,7 +52,7 @@ def _str_base(num, base, length, numerals = '0123456789'):
     
     Returns
     -----------
-    representation of input number given chosen base and word length in string format
+    Representation of input number given chosen base and word length in string format
     
     """
 
@@ -192,7 +195,7 @@ def fock_dim(m_num, p_num, full=False):
     
     Returns
     -----------
-    integer representing the dimension
+    Integer representing the dimension
     
     """
     if full:
@@ -324,7 +327,6 @@ def opt_subalgebra_gen(m_num, p_num):
     Requires
     -----------
     numpy as np
-    scipy.special.comb
     qfunk.qoptic.fock_dim
     qfunk.qoptic.number_states
     qfunk.qoptic.lookup_gen
@@ -393,6 +395,23 @@ def opt_subalgebra_gen(m_num, p_num):
 def optical_state_gen(m_num, p_num, nstate):
     """
     Generate basis element of given number state such that it is consistent with qfunk labelling convention is. 
+
+    Parameters
+    -----------
+    m_num: number of bosonic modes in system 
+    p_num: total number of bosons in system
+    
+    Requires
+    -----------
+    numpy as np
+    qfunk.qoptic.fock_dim
+    qfunk.qoptic.lookup_gen
+    
+
+    Returns
+    -----------
+    density operator representing specified number state consistent qith qfunk labelling scheme
+
     """
 
     # compute lookup table
@@ -404,15 +423,60 @@ def optical_state_gen(m_num, p_num, nstate):
     # generate basis
     basis = np.eye(fock_dim(m_num=m_num, p_num=p_num))
     # get basis element and return it
-    element = basis[lookup[key],:]
+    element = basis[lookup[key],:].reshape([-1,1])
+    rho = np.kron(element, qut.dagger(element))
 
-    return element
+    return rho
 
 
+def optical_projector(m_num, p_num, modes, target):
+    """
+    Computes operator that maps bosons in given modes to a target mode - acts like a partial trace operation while preserving dimension.
+    """  
 
+    # compute dimension of Fock spaces
+    dim = fock_dim(m_num=m_num, p_num=p_num)
 
+    # catch edge case
+    if m_num==len(modes):
+        raise ValueError("Complete projection of state requested - is pointless, just generate the desired state")
+
+    # generate number states for two spaces
+    nstates = number_states(m_num=m_num, p_num=p_num)
+    # generate lookup table
+    lookup = lookup_gen(m_num=m_num, p_num=p_num)
+    # generate basis elements
+    basis = np.eye(dim, dtype=np.complex128)
+    # initialise operator list (keeps sparsity)
+    operators = []
+
+    # iterate over all number states and compute corresponding map
+    for i in range(dim):
+        # compute input state
+        input_state = nstates[i, :]
+
+        # compute correct output state to map to 
+        output_state = input_state.copy()
+        # compute total number of photons in target modes
+        mode_p = sum(output_state[modes])
+        output_state[modes] = 0
+        output_state[target] = mode_p
+
+        # compute corresponding basis elements
+        input_key = ''.join(map(str,input_state))
+        output_key = ''.join(map(str,output_state))  
+
+        input_element = basis[lookup[input_key],:].reshape([-1,1])
+        output_element = basis[lookup[output_key],:].reshape([-1,1])
+
+        # construct operator and add to list
+        op = np.kron(output_element, qut.dagger(input_element))
+
+        operators += [op]
+
+    return operators
 
 if __name__ == '__main__':
-    print(optical_state_gen(4,2,[1,0,1,0]))
-    
+    optical_projector(5,3,[0,1],0)
+
     #opt_subalgebra_gen(2,5)
