@@ -427,13 +427,13 @@ class Test_Comb(unittest.TestCase):
         comb_2 = qos.Comb(mat=Mat2,dims=dims2,spaces=spaces2)
         
         #three Hilbert spaces, begins on input, ends on input
-        Mat3 = np.kron(np.eye(3),MaxEnt)
+        Mat3 = np.kron(np.eye(3)/3.,MaxEnt)
         spaces3 = ['A','B','C']
         dims3 = [3,2,2]
         comb_3 = qos.Comb(mat=Mat3,dims=dims3,spaces=spaces3)
         
         #three Hilbert spaces, begins on input, ends on input, different structure than comb_3
-        Mat4 = qut.sys_permute(Mat3,[1,0,2],[3,2,2])
+        Mat4 = qut.sys_permute(np.kron(np.eye(3),MaxEnt/2),[1,0,2],[3,2,2])
         spaces4 = ['A','B','C']
         dims4 = [2,3,2]
         comb_4 = qos.Comb(mat=Mat4,dims=dims4,spaces=spaces4)
