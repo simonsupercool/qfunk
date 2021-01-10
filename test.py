@@ -119,7 +119,7 @@ class Test_MUB_gen(unittest.TestCase):
 
     # check if all basis collection satisfies MUB property
     def test_ismub(self):
-        # iterate over each density operator and check for purity
+        # iterate over each density operator and check for purity - clunky but transparent
         for i in range(self.dim+1):
             for j in range(self.dim):
                 for k in range(self.dim+1):
@@ -275,6 +275,40 @@ class Test_symmetric_map(unittest.TestCase):
     def test_isometry(self):
         # test for isometric transformation in direction of map (inverse is not one obviously)
         self.assertTrue(np.allclose(self.S @ np.transpose(self.S), np.eye(self.dim)))
+
+
+class Test_fock_dim(unittest.TestCase):
+    # define test to check correct dimension calculation
+    def test_dimension(self):
+        # check computed dimension for large known case is correct
+        self.assertTrue(qop.fock_dim(m_num=15, p_num=5)==11628, msg="Computed Fock dimension does not match expected value")
+
+
+
+
+class Test_dirsum(unittest.TestCase):
+    def __init__(self, *args, **kwargs):
+        # define number of modes and photons 
+        self.m_num = 4
+        self.p_num = 2
+
+        # compute system dimension
+        self.dim = comb(self.m_num+self.p_num-1,self.p_num, exact=True)
+
+        # compute symmetric operator
+        self.S = qop.symmetric_map(self.m_num, self.p_num)
+
+        # call init of parent test class
+        super(Test_symmetric_map, self).__init__(*args, **kwargs)
+
+    # define test to check correct 
+    def test_dimension(self):
+        # computs shape of operator
+        dims = np.shape(self.S)
+        # check output dimension is correct
+        self.assertTrue(dims[0]==self.dim)
+        # check input direction is correct
+        self.assertTrue(dims[1]==self.m_num**self.p_num)
 
 
 ##############################################
