@@ -243,7 +243,8 @@ def lookup_gen(m_num, p_num):
     return lookup_table
 
 
-def number_state_map(m_num, p_num, j,k, basis, nstates, lookup):
+
+def number_state_map(m_num, p_num, j,k, basis, nstates, lookup, sparse=False):
     """ 
     Computes jk basis element of an alegebra for optical transformations. 
 
@@ -310,10 +311,13 @@ def number_state_map(m_num, p_num, j,k, basis, nstates, lookup):
 
         operator += coeff*np.kron(output_state, input_state)
 
-    return operator
+    if sparse:
+        return csc_matrix(operator)
+    else:
+        return operator
 
 
-def opt_subalgebra_gen(m_num, p_num):
+def opt_subalgebra_gen(m_num, p_num, flatten=True):
     """
     Outputs a basis for the generating algebra of unitary transformations on m_num modes and p_num bosons.
 
@@ -348,10 +352,8 @@ def opt_subalgebra_gen(m_num, p_num):
     lookup_table = lookup_gen(m_num=m_num, p_num=p_num)
     # preallocate single photon basis array
     basis = np.eye(dim)
-    # compute
-    algebra_basis = np.zeros((m_num**2, dim, dim), dtype=np.complex128)
-
-
+    # initialise list to contain basis (allows for sparse representation)
+    algebra_basis = csc_matrix((m_num**2,dim**2),dtype=np.complex128)
 
     # compute the basis for the multiphoton algebra - is also the basis for the subalgebra so no need for exponential/logarithmic maps (very nice)
     cnt = 0
@@ -368,7 +370,8 @@ def opt_subalgebra_gen(m_num, p_num):
                              nstates=nstates, 
                              lookup=lookup_table)
             
-            algebra_basis[cnt,:,:] = (op_left + op_right)*1j/2
+            matrix = (op_left + op_right)*1j/2
+            algebra_basis[cnt,:] = csc_matrix(matrix.reshape([1,-1]))
             cnt += 1
 
     for j in range(m_num):
@@ -386,13 +389,14 @@ def opt_subalgebra_gen(m_num, p_num):
                              nstates=nstates, 
                              lookup=lookup_table)
             
-            algebra_basis[cnt,:,:] = (op_left - op_right)/2
+            matrix = (op_left - op_right)/2
+            algebra_basis[cnt,:] = csc_matrix(matrix.reshape([1,-1]))
             cnt += 1
 
     return algebra_basis
 
 
-def optical_state_gen(m_num, p_num, nstate):
+def optical_state_gen(m_num, p_num, nstate, sparse=False):
     """
     Generate basis element of given number state such that it is consistent with qfunk labelling convention is. 
 
@@ -400,7 +404,8 @@ def optical_state_gen(m_num, p_num, nstate):
     -----------
     m_num: number of bosonic modes in system 
     p_num: total number of bosons in system
-    
+    nstate: list of integers of length m_num summing to p_num that define the desired number state
+
     Requires
     -----------
     numpy as np
@@ -426,19 +431,40 @@ def optical_state_gen(m_num, p_num, nstate):
     element = basis[lookup[key],:].reshape([-1,1])
     rho = np.kron(element, qut.dagger(element))
 
-    return rho
+    if sparse:
+        return csc_matrix(rho)
+    else:
+        return rho
 
 
-def optical_projector(m_num, p_num, modes, target):
+def optical_projector(m_num, p_num, proj_modes, target, sparse=False):
     """
     Computes operator that maps bosons in given modes to a target mode - acts like a partial trace operation while preserving dimension.
+    
+    Parameters
+    -----------
+    m_num: number of bosonic modes in system 
+    p_num: total number of bosons in system
+    nstate: list of integers of length m_num summing to p_num that define the desired number state
+
+    Requires
+    -----------
+    numpy as np
+    qfunk.qoptic.fock_dim
+    qfunk.qoptic.lookup_gen
+    
+
+    Returns
+    -----------
+    density operator representing specified number state consistent qith qfunk labelling scheme
+
     """  
 
     # compute dimension of Fock spaces
     dim = fock_dim(m_num=m_num, p_num=p_num)
 
     # catch edge case
-    if m_num==len(modes):
+    if m_num==len(proj_modes):
         raise ValueError("Complete projection of state requested - is pointless, just generate the desired state")
 
     # generate number states for two spaces
@@ -458,8 +484,8 @@ def optical_projector(m_num, p_num, modes, target):
         # compute correct output state to map to 
         output_state = input_state.copy()
         # compute total number of photons in target modes
-        mode_p = sum(output_state[modes])
-        output_state[modes] = 0
+        mode_p = sum(output_state[proj_modes])
+        output_state[proj_modes] = 0
         output_state[target] = mode_p
 
         # compute corresponding basis elements
@@ -472,7 +498,11 @@ def optical_projector(m_num, p_num, modes, target):
         # construct operator and add to list
         op = np.kron(output_element, qut.dagger(input_element))
 
-        operators += [op]
+        # check if sparse matrix representation is requested
+        if sparse:
+            operators.append(csc_matrix(op))
+        else:   
+            operators.append(op)
 
     return operators
 
