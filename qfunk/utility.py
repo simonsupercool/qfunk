@@ -7,7 +7,7 @@ Contains basic functions for linear algebra.
 """
 
 import numpy as np
-
+from scipy import sparse
 
 
 
@@ -189,7 +189,7 @@ def Lv(rho,dims):
 
 
 
-def tn_product(*args):
+def tn_product(*args, sparse=False):
     """
     Parameters
     ----------
@@ -210,7 +210,10 @@ def tn_product(*args):
     else:
         result = args[0]
         for Mat in args[1:]:
-            result = np.kron(result,Mat)
+            if sparse:
+                result = sparse.kron(result, Mat)
+            else:
+                result = np.kron(result,Mat)
         return result
 
 def dagger(M):
@@ -308,10 +311,10 @@ def gellman_gen(d):
     for k in range(1, d):
         for j in range(0, k):
             # create symmetric component
-            set_el_sym = _Ejk(d, j, k) + Ejk(d, k, j)
+            set_el_sym = _Ejk(d, j, k) + _Ejk(d, k, j)
 
             # create antisymmetric component
-            set_el_asym = -1j*(_Ejk(d, j, k) - Ejk(d, k, j)) 
+            set_el_asym = -1j*(_Ejk(d, j, k) - _Ejk(d, k, j)) 
 
             # add to set
             gellman[ind,:,:] = set_el_sym
