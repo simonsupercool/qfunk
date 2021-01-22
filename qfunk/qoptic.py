@@ -2,6 +2,7 @@
 import numpy as np
 from scipy.special import comb
 from scipy.sparse import csc_matrix
+from itertools import product
 
 import qfunk.utility as qut
 
@@ -284,7 +285,9 @@ def number_state_map(m_num, p_num, j,k, basis, nstates, lookup, sparse=False):
         ann_boson_num = curr_state[k]
 
         # no mapping occurs
-        if create_boson_num >= p_num or ann_boson_num <= 0 or j==k:
+        if (create_boson_num >= p_num or ann_boson_num <= 0) and k!=j:
+            continue
+        elif j==k:
             output_key = input_key = ''.join(map(str,nstates[i,:]))
         else:
             # else compute new number states
@@ -295,6 +298,7 @@ def number_state_map(m_num, p_num, j,k, basis, nstates, lookup, sparse=False):
             input_key = ''.join(map(str,nstates[i,:]))
             output_key = ''.join(map(str,curr_state))
 
+        
         # get basis indices from lookup table
         input_ind = lookup[input_key]
         output_ind = lookup[output_key]
@@ -307,7 +311,7 @@ def number_state_map(m_num, p_num, j,k, basis, nstates, lookup, sparse=False):
         if j==k:
             coeff = np.sqrt(create_boson_num)**2
         else:
-            coeff = np.sqrt(create_boson_num)*np.sqrt(ann_boson_num+1)
+            coeff = np.sqrt(create_boson_num+1)*np.sqrt(ann_boson_num)
 
         operator += coeff*np.kron(output_state, input_state)
 
@@ -353,11 +357,11 @@ def opt_subalgebra_gen(m_num, p_num, flatten=True):
     # preallocate single photon basis array
     basis = np.eye(dim)
     # initialise list to contain basis (allows for sparse representation)
-    algebra_basis = csc_matrix((m_num**2,dim**2),dtype=np.complex128)
+    algebra_basis = np.zeros((m_num**2,dim**2),dtype=np.complex128)
 
     # compute the basis for the multiphoton algebra - is also the basis for the subalgebra so no need for exponential/logarithmic maps (very nice)
     cnt = 0
-    for j in range(m_num):
+    for j in range(m_num): 
         for k in range(j+1):
             op_left = number_state_map(m_num=m_num, p_num=p_num, 
                              j=j,k=k, 
@@ -370,8 +374,9 @@ def opt_subalgebra_gen(m_num, p_num, flatten=True):
                              nstates=nstates, 
                              lookup=lookup_table)
             
+            
             matrix = (op_left + op_right)*1j/2
-            algebra_basis[cnt,:] = csc_matrix(matrix.reshape([1,-1]))
+            algebra_basis[cnt,:] = matrix.reshape([1,-1])
             cnt += 1
 
     for j in range(m_num):
@@ -390,7 +395,7 @@ def opt_subalgebra_gen(m_num, p_num, flatten=True):
                              lookup=lookup_table)
             
             matrix = (op_left - op_right)/2
-            algebra_basis[cnt,:] = csc_matrix(matrix.reshape([1,-1]))
+            algebra_basis[cnt,:] = matrix.reshape([1,-1])
             cnt += 1
 
     return algebra_basis
@@ -506,7 +511,12 @@ def optical_projector(m_num, p_num, proj_modes, target, sparse=False):
 
     return operators
 
-if __name__ == '__main__':
-    optical_projector(5,3,[0,1],0)
 
-    #opt_subalgebra_gen(2,5)
+if __name__ == '__main__':
+
+    algebra = opt_subalgebra_gen(2,5)
+
+
+    # for i in range(len(algebra)):
+
+    #     print(algebra[i,:].reshape([dim,dim]))
