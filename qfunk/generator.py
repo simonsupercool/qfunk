@@ -9,6 +9,7 @@ Available functions: trans_x, TraceS
 
 import numpy as np
 import qfunk.utility as qut
+import scipy.linalg as SLA
 
 
 def random_unitary(n):
@@ -187,6 +188,53 @@ def ent_gen(dim, vec=False):
         return ent
     else:
         return np.kron(ent, qut.dagger(ent))/dim
+    
+def random_inst(num_of_el,dim_in,dim_out=None):
+    """
+    Generates a random instrument in the representation given by Rep
+
+    Parameters
+    ----------
+    num_of_el:  integer specifying the number of elements of the instrument
+    in_dim:     integer specifying the dimension of the input of the map
+    out_dim:    integer specifying the dimension of the output of the map
+    Rep:        string specifying the representation in which the map is returned
+
+    Requires
+    -------
+    numpy as np
+    scipy.linalg as SLA
+    qfunk.utility as qut
+    rand_rho
+
+    Returns
+    -------
+    Inst:   List of num_of_el CP maps that add up to CPTP map
+
+    Desiderata: Enable different representations (currently: Choi Rep)
+    """
+    #Check if input and output space need to differ
+    if dim_out==None:
+        dim_out = dim_in
+    
+    #size of Choi matrices
+    dim_tot = dim_in*dim_out
+    
+    #generate num_of_el random CP maps with trace in (0,1)
+    Inst = []
+    for n in np.arange(num_of_el):
+        tra = np.random.rand()
+        Inst.append(tra*rand_rho(dim_tot))
+    
+    #compute sum of CP, reduced state thereof and inverse
+    inst_sum = np.sum([cp for cp in Inst], 0)
+    inst_red = qut.trace_x(inst_sum, [1],[dim_in,dim_out])
+    renormalize = np.kron(SLA.sqrtm(np.linalg.inv(inst_red)),np.eye(dim_out))
+    Inst = [np.dot(np.dot(renormalize,cp),renormalize) for cp in Inst]
+    return Inst
 
 if __name__ == '__main__':
-    a = bistochastic_gen(10)
+    Inst = random_inst(2,2)
+    print(qut.trace_x(Inst[0],[1],[2,2])+qut.trace_x(Inst[1],[1],[2,2]))
+    print(Inst[0])
+    print(Inst[1])

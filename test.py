@@ -141,6 +141,31 @@ class Test_MUB_gen(unittest.TestCase):
                             self.assertTrue(np.isclose(np.trace(rho1 @ rho2) , 1/self.dim), msg="bases are not unbiased")
                         
 
+class Test_random_inst(unittest.TestCase):
+    def __init__(self, *args, **kwargs):
+        #define input and output dimension and number of elements
+        self.dim_in = 4
+        self.dim_out = 5
+        self.num_of_el = 5
+        
+        # call init of parent test class
+        super(Test_random_inst, self).__init__(*args, **kwargs)
+
+    # define test to check correct 
+    def test_positivity(self):
+        #Create random instrument
+        instrument = qr.random_inst(num_of_el= self.num_of_el,dim_in = self.dim_in, dim_out = self.dim_out)
+        #Check that all its elements are positive
+        for cp in instrument:
+            self.assertTrue(min(np.real(LA.eigvals(cp))) >= 0, msg='Elements of the instrument are not positive')
+
+    def test_trace_condition(self):
+        # test that partial trace over sum of instrument elements is equal to the identity matrix
+        instrument = qr.random_inst(num_of_el= self.num_of_el,dim_in = self.dim_in, dim_out = self.dim_out)
+        inst_sum_red = np.sum([qut.trace_x(cp,[1],[self.dim_in,self.dim_out]) for cp in instrument], 0)
+        self.assertTrue(np.allclose(np.eye(self.dim_in),inst_sum_red))
+                        
+                        
 ##############################################
 ###### unit tests for utility operations #####
 ##############################################

@@ -193,7 +193,7 @@ def tn_product(*args, sparse=False):
     """
     Parameters
     ----------
-    varargin: elements which are to be tensored
+    args: elements which are to be tensored
     
     Requires
     -------
