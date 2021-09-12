@@ -1,0 +1,20 @@
+# YAML 1.2
+---
+authors: 
+  -
+    affiliation: IQOQI
+    family-names: Milz
+    given-names: Simon
+    orcid: "https://orcid.org/0000-0002-6987-5513"
+  -
+    family-names: Morris
+    given-names: Joshua
+    orcid: "https://orcid.org/0000-0002-1022-7976"
+cff-version: "1.1.0"
+date-released: 2021-09-24
+license: MIT
+message: "If you use this software, please cite it as below"
+repository-code: "https://github.com/simonsupercool/qfunk"
+title: QFunk
+version: "1.0"
+...
