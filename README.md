@@ -13,21 +13,17 @@
 [![MIT License][license-shield]][license-url]
 
 
-
 <!-- PROJECT LOGO -->
 <br />
 <p align="center">
-  <a href="https://github.com/simonsupercool/qfunk">
+  <a href="https://github.com/othneildrew/Best-README-Template">
     <img src="images/logo.png" alt="Logo" width="80" height="80">
   </a>
 
   <h3 align="center">QFUNK</h3>
 
   <p align="center">
-   	
-  	
-
-   	
+    Quantum information methods that everybody needs. 
     <br />
     <a href="https://github.com/simonsupercool/qfunk"><strong>Explore the docs »</strong></a>
     <br />
@@ -72,22 +68,8 @@
 <!-- ABOUT THE PROJECT -->
 ## About The Project
 
-This 
+This package is intended as a central repository for python code pertaining to quantum information science, primarily the subfield of open quantum system dynamics. 
 
-<!--
-[![Product Name Screen Shot][product-screenshot]](https://example.com)
-
-Here's a blank template to get started:
-**To avoid retyping too much info. Do a search and replace with your text editor for the following:**
-`github_username`, `repo_name`, `twitter_handle`, `email`, `project_title`, `project_description`
-
-
-### Built With
-
-* []()
-* []()
-* []()
--->
 
 
 <!-- GETTING STARTED -->
@@ -97,7 +79,7 @@ To get a local copy up and running follow these simple steps.
 
 ### Prerequisites
 
-This is an example of how to list things you need to use the software and how to install them.
+As of the current version, QFunk 
   ```sh
   conda install numpy, scipy
   ```
@@ -117,11 +99,12 @@ This is an example of how to list things you need to use the software and how to
    python test.py
    ```
 
+If all tests pass then, otherwise please raise an issue that includes the failed test output. 
 
 <!-- USAGE EXAMPLES -->
 ## Usage
 
-Use this space to show useful examples of how a project can be used. Additional screenshots, code examples and demos work well in this space. You may also link to more resources.
+We need to add examples of the code here - mainly the highlights of the open systems stuff I think - really just one or two examples. We also need to add an examples folder filled with example code and some kind of directory for it. These sorts of things are what decide if anyone actually uses our package. 
 
 _For more examples, please refer to the [Documentation](https://example.com)_
 
@@ -130,7 +113,7 @@ _For more examples, please refer to the [Documentation](https://example.com)_
 <!-- CONTRIBUTING -->
 ## Contributing
 
-This package is intended as a broad repository for quantum information related code. As such any contribution that meets this criteria are welcome:
+This package is intended as a broad repository for quantum information related code. As such any contribution that meets this criteria are welcome. If you wish to contribute:
 
 1. Fork the Project
 2. Create your Feature Branch (`git checkout -b feature/HowCouldYouHaveNotDoneThisAlready`)
@@ -156,3 +139,18 @@ Distributed under the MIT License. See `LICENSE` for more information.
 
 -->
 
+<!-- MARKDOWN LINKS & IMAGES -->
+<!-- https://www.markdownguide.org/basic-syntax/#reference-style-links -->
+[contributors-shield]: https://img.shields.io/github/contributors/othneildrew/Best-README-Template.svg?style=for-the-badge
+[contributors-url]: https://github.com/othneildrew/Best-README-Template/graphs/contributors
+[forks-shield]: https://img.shields.io/github/forks/othneildrew/Best-README-Template.svg?style=for-the-badge
+[forks-url]: https://github.com/othneildrew/Best-README-Template/network/members
+[stars-shield]: https://img.shields.io/github/stars/othneildrew/Best-README-Template.svg?style=for-the-badge
+[stars-url]: https://github.com/othneildrew/Best-README-Template/stargazers
+[issues-shield]: https://img.shields.io/github/issues/othneildrew/Best-README-Template.svg?style=for-the-badge
+[issues-url]: https://github.com/othneildrew/Best-README-Template/issues
+[license-shield]: https://img.shields.io/github/license/othneildrew/Best-README-Template.svg?style=for-the-badge
+[license-url]: https://github.com/othneildrew/Best-README-Template/blob/master/LICENSE.txt
+[linkedin-shield]: https://img.shields.io/badge/-LinkedIn-black.svg?style=for-the-badge&logo=linkedin&colorB=555
+[linkedin-url]: https://linkedin.com/in/othneildrew
+[product-screenshot]: images/screenshot.png
