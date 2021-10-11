@@ -17,7 +17,7 @@
 <br />
 <p align="center">
   <a href="https://github.com/othneildrew/Best-README-Template">
-    <img src="images/logo.png" alt="Logo" width="80" height="80">
+    <img src="images/photo_2021-10-11_22-17-57.jpg" alt="Logo" width="80" height="80">
   </a>
 
   <h3 align="center">QFUNK</h3>
