@@ -56,7 +56,6 @@
       </ul>
     </li>
     <li><a href="#usage">Usage</a></li>
-    <li><a href="#roadmap">Roadmap</a></li>
     <li><a href="#contributing">Contributing</a></li>
     <li><a href="#license">License</a></li>
     <!--<li><a href="#acknowledgements">Acknowledgements</a></li>-->
@@ -79,7 +78,7 @@ To get a local copy up and running follow these simple steps.
 
 ### Prerequisites
 
-As of the current version, QFunk 
+As of the current version, qfunk has only basic dependencies on numpy and scipy. The most recent of these can be downloaded like so
   ```sh
   conda install numpy, scipy
   ```
@@ -90,7 +89,7 @@ As of the current version, QFunk
    ```sh
    git clone https://github.com/simonsupercool/qfunk.git
    ```
-2. Install package via local pip
+2. CD into directory and install package via local pip command
    ```sh
    pip install qfunk
    ```
@@ -99,12 +98,12 @@ As of the current version, QFunk
    python test.py
    ```
 
-If all tests pass then, otherwise please raise an issue that includes the failed test output. 
+If all tests pass then the installation was a success, otherwise please raise an issue that includes the failed test output. 
 
 <!-- USAGE EXAMPLES -->
 ## Usage
 
-We need to add examples of the code here - mainly the highlights of the open systems stuff I think - really just one or two examples. We also need to add an examples folder filled with example code and some kind of directory for it. These sorts of things are what decide if anyone actually uses our package. 
+As a general package for quantum information, most standard linear algebra operations are available in qfunk that pertain to this field. On top of this more specific functionality is available, primarily dealing with quantum optics and open quantum systems. Specific examples of which may be found in the examples folder.
 
 _For more examples, please refer to the [Documentation](https://example.com)_
 
