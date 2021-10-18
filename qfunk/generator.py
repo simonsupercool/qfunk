@@ -8,7 +8,7 @@ Available functions: trans_x, TraceS
 """
 
 import numpy as np
-import qfunk.utility as qut
+import qfunk.utility
 import scipy.linalg as SLA
 
 
@@ -145,7 +145,7 @@ def MUB_gen(d):
             for l in range(d):
                 el = mub[0,l,:,l].reshape(d,1)
                 state += w**(k*(l**2)+m*l) * el/np.sqrt(d)   
-            mub[k,m,:,:] = np.kron(state, qut.dagger(state))
+            mub[k,m,:,:] = np.kron(state, qfunk.utility.dagger(state))
 
     return mub
 
@@ -187,7 +187,7 @@ def ent_gen(dim, vec=False):
     if vec:
         return ent
     else:
-        return np.kron(ent, qut.dagger(ent))/dim
+        return np.kron(ent, qfunk.utility.dagger(ent))/dim
     
 def random_inst(num_of_el,dim_in,dim_out=None):
     """
@@ -228,13 +228,13 @@ def random_inst(num_of_el,dim_in,dim_out=None):
     
     #compute sum of CP, reduced state thereof and inverse
     inst_sum = np.sum([cp for cp in Inst], 0)
-    inst_red = qut.trace_x(inst_sum, [1],[dim_in,dim_out])
+    inst_red = qfunk.utility.trace_x(inst_sum, [1],[dim_in,dim_out])
     renormalize = np.kron(SLA.sqrtm(np.linalg.inv(inst_red)),np.eye(dim_out))
     Inst = [np.dot(np.dot(renormalize,cp),renormalize) for cp in Inst]
     return Inst
 
 if __name__ == '__main__':
     Inst = random_inst(2,2)
-    print(qut.trace_x(Inst[0],[1],[2,2])+qut.trace_x(Inst[1],[1],[2,2]))
+    print(qfunk.utility.trace_x(Inst[0],[1],[2,2])+qfunk.utility.trace_x(Inst[1],[1],[2,2]))
     print(Inst[0])
     print(Inst[1])
