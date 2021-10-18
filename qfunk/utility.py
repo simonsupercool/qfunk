@@ -9,6 +9,7 @@ Contains basic functions for linear algebra.
 import numpy as np
 from scipy import sparse
 
+import qfunk.opensys
 
 
 def trans_x(rho,sys,dim):
@@ -121,6 +122,35 @@ def sys_permute(rho,perm,dim):
     return rho.reshape(arshape).transpose(P).reshape(sh)
 
 
+def unitary_choi(U):
+    """
+    Parameters
+    ----------
+    U: dxd unitary matrix to compute choi form of
+    
+    Requires
+    -------
+    numpy as np
+    qfunk.opensys as qop
+    
+    Returns
+    -------
+    A numpy matrix of d^2 x d^2 representing the Choi matrix (not state) of U. Acts on second half of 
+    tensor product space. 
+    
+    """
+
+    # get dimension 
+    dim = len(U)
+
+    # compute A-form of map
+    A_form = np.kron(np.conj(U), U)
+
+    # permute subsystem 
+    B_form = qops.choi_involution(A_form, [dim,dim])
+
+    return B_form
+    
 
 def projl(rho,sys,dim):
     """

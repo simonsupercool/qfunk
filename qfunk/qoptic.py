@@ -325,7 +325,7 @@ def opt_subalgebra_gen(m_num, p_num, flatten=True):
     """
     Outputs a basis for the generating algebra of unitary transformations on m_num modes and p_num bosons.
 
-    Ref: arXiv:1901.06178 
+    Ref: https://journals.aps.org/pra/abstract/10.1103/PhysRevA.100.022301 
 
     Parameters
     -----------
@@ -359,7 +359,7 @@ def opt_subalgebra_gen(m_num, p_num, flatten=True):
     # initialise list to contain basis (allows for sparse representation)
     algebra_basis = np.zeros((m_num**2,dim**2),dtype=np.complex128)
 
-    # compute the basis for the multiphoton algebra - is also the basis for the subalgebra so no need for exponential/logarithmic maps (very nice)
+    # compute the basis for the multiphoton algebra - is also the basis for the subalgebra so no need for exponential/logarithmic maps
     cnt = 0
     for j in range(m_num): 
         for k in range(j+1):
@@ -434,7 +434,7 @@ def optical_state_gen(m_num, p_num, nstate, sparse=False):
     basis = np.eye(fock_dim(m_num=m_num, p_num=p_num))
     # get basis element and return it
     element = basis[lookup[key],:].reshape([-1,1])
-    rho = np.kron(element, qut.dagger(element))
+    rho = np.kron(element, qfunk.utility.dagger(element))
 
     if sparse:
         return csc_matrix(rho)
@@ -501,7 +501,7 @@ def optical_projector(m_num, p_num, proj_modes, target, sparse=False):
         output_element = basis[lookup[output_key],:].reshape([-1,1])
 
         # construct operator and add to list
-        op = np.kron(output_element, qut.dagger(input_element))
+        op = np.kron(output_element, qfunk.utility.dagger(input_element))
 
         # check if sparse matrix representation is requested
         if sparse:

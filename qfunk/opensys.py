@@ -3,7 +3,7 @@ import warnings
 
 import numpy as np
 
-import qfunk.utility as qut
+import qfunk.utility
 
 
 def link_prod(C1,C2):
@@ -75,7 +75,7 @@ def link_prod(C1,C2):
         #Positon of the common spaces
         PosComm1 = np.array([np.where(Names1 == label)  for label in CommSpaces]).flatten()
         #Tensor product and partial transposition over common spaces
-        Comb1 = np.kron(qut.trans_x(Comb1,PosComm1,dim1),np.eye(ExDim1))
+        Comb1 = np.kron(qfunk.utility.trans_x(Comb1,PosComm1,dim1),np.eye(ExDim1))
         
         #Tensor the second comb with an identity of the 
         #correct size and rearrange the spaces in the correct order
@@ -93,7 +93,7 @@ def link_prod(C1,C2):
         dimsCurr = np.array([Dict[Curr] for Curr in CurrentOrder]).flatten()
         #permute spaces of Comb2 according to said permutation
     
-        Comb2 = qut.sys_permute(Comb2, perm, dimsCurr)
+        Comb2 = qfunk.utility.sys_permute(Comb2, perm, dimsCurr)
         
         #Position of the common systems and dimensions of the spaces in right order
         sys = np.array([np.where(CorrectOrder == label) for label in CommSpaces]).flatten()
@@ -103,7 +103,7 @@ def link_prod(C1,C2):
         #dimensions of the remaining spaces after contraction
         dimsNew = np.delete(dims,sys)
         
-        return (qut.trace_x(np.dot(Comb1,Comb2), sys, dims), dimsNew, CorrectOrder)
+        return (qfunk.utility.trace_x(np.dot(Comb1,Comb2), sys, dims), dimsNew, CorrectOrder)
 
     
 
@@ -224,7 +224,7 @@ class Comb(object):
             sys.append(np.array(np.where(np.array(self.spaces) == reducspaces[n])).flatten())
             print(sys)
         sys = np.array(sys).flatten()
-        self.mat = qut.trace_x(self.mat,sys,self.dims)
+        self.mat = qfunk.utility.trace_x(self.mat,sys,self.dims)
         print(self.mat)
         self.spaces = np.delete(np.array(self.spaces),sys)
         print(self.spaces)
@@ -300,7 +300,7 @@ class Comb(object):
             #Positon of the common spaces
             PosComm1 = np.array([np.where(Names1 == label)  for label in CommSpaces]).flatten()
             #Tensor product and partial transposition over common spaces
-            Comb1 = np.kron(qut.trans_x(Comb1,PosComm1,dim1),np.eye(ExDim1))
+            Comb1 = np.kron(qfunk.utility.trans_x(Comb1,PosComm1,dim1),np.eye(ExDim1))
             
             #Tensor the second comb with an identity of the 
             #correct size and rearrange the spaces in the correct order
@@ -318,7 +318,7 @@ class Comb(object):
             dimsCurr = np.array([Dict[Curr] for Curr in CurrentOrder]).flatten()
             #permute spaces of Comb2 according to said permutation
         
-            Comb2 = qut.sys_permute(Comb2, perm, dimsCurr)
+            Comb2 = qfunk.utility.sys_permute(Comb2, perm, dimsCurr)
             
             #Position of the common systems and dimensions of the spaces in right order
             sys = np.array([np.where(CorrectOrder == label) for label in CommSpaces]).flatten()
@@ -329,7 +329,7 @@ class Comb(object):
             dimsNew = np.delete(dims,sys)
             
             #Resulting link product matrix
-            LinkMat= qut.trace_x(np.dot(Comb1,Comb2), sys, dims)
+            LinkMat= qfunk.utility.trace_x(np.dot(Comb1,Comb2), sys, dims)
             
             #Change matrix in place if demanded
             if overwrite:
@@ -503,7 +503,7 @@ class Comb(object):
 
         
         #Check Hermiticity
-        if np.linalg.norm(self.mat - qut.dagger(self.mat)) >= eps:
+        if np.linalg.norm(self.mat - qfunk.utility.dagger(self.mat)) >= eps:
             print('Comb is not Hermitian. FALSE is returned.')
             return False
         
@@ -540,7 +540,7 @@ class Comb(object):
                 sys_tr = [spaces[-1]]
                 spaces_for_norm = spaces.copy() #copy of spaces to check normalization later
                 #Check if comb ends on an output space. If so, check remaining hierarchy of causality conditions
-                if np.linalg.norm(qut.projl(self.mat,self.pos_of_space(sys_tr), dims) - self.mat) <= eps:
+                if np.linalg.norm(qfunk.utility.projl(self.mat,self.pos_of_space(sys_tr), dims) - self.mat) <= eps:
                     CausOrd = True
                     spaces = np.delete(spaces,-1)
                     #Check hierarchy of trace conditions
@@ -548,7 +548,7 @@ class Comb(object):
                         sys_tr.append(spaces[-1])
                         sys_tr_cop = sys_tr.copy()
                         sys_tr.append(spaces[-2])
-                        if np.linalg.norm(qut.projl(self.mat,self.pos_of_space(sys_tr_cop), dims) - qut.projl(self.mat,self.pos_of_space(sys_tr), dims)) <= eps:
+                        if np.linalg.norm(qfunk.utility.projl(self.mat,self.pos_of_space(sys_tr_cop), dims) - qfunk.utility.projl(self.mat,self.pos_of_space(sys_tr), dims)) <= eps:
                             spaces = np.delete(spaces,[-1,-2])
                         else:
                             CausOrd = False
@@ -569,14 +569,14 @@ class Comb(object):
                     sys_tr.append(spaces[-2])
                     spaces = np.delete(spaces,[-2,-1])
                     #Check if comb ends on an input space. If so,  check remaining hierarchy of causality conditions
-                    if np.linalg.norm(qut.projl(self.mat,self.pos_of_space(sys_tr_cop),dims) - qut.projl(self.mat,self.pos_of_space(sys_tr), dims)) <= eps:
+                    if np.linalg.norm(qfunk.utility.projl(self.mat,self.pos_of_space(sys_tr_cop),dims) - qfunk.utility.projl(self.mat,self.pos_of_space(sys_tr), dims)) <= eps:
                         CausOrd = True
                         #Check hierarchy of trace conditions
                         while len(spaces)>1 and CausOrd:
                             sys_tr.append(spaces[-1])
                             sys_tr_cop = sys_tr.copy()
                             sys_tr.append(spaces[-2])
-                            if np.linalg.norm(qut.projl(self.mat,self.pos_of_space(sys_tr_cop), dims) - qut.projl(self.mat,self.pos_of_space(sys_tr), dims) <= eps):
+                            if np.linalg.norm(qfunk.utility.projl(self.mat,self.pos_of_space(sys_tr_cop), dims) - qfunk.utility.projl(self.mat,self.pos_of_space(sys_tr), dims) <= eps):
                                spaces = np.delete(spaces,[-2,-1])
                             else:
                                 CausOrd = False
@@ -618,7 +618,7 @@ class Comb(object):
         """
             
         #Check Hermiticity
-        if np.linalg.norm(self.mat - qut.dagger(self.mat)) >= eps:
+        if np.linalg.norm(self.mat - qfunk.utility.dagger(self.mat)) >= eps:
             print('Comb is not Hermitian. FALSE is returned.')
             return False
             
@@ -629,7 +629,7 @@ class Comb(object):
             return False
     
         #Check that comb satisfies the correct projecteion property
-        if np.linalg.norm(qut.Lv(self.mat,self.dims) - self.mat) >= eps:
+        if np.linalg.norm(qfunk.utility.Lv(self.mat,self.dims) - self.mat) >= eps:
             print('Comb does not live int he correct linear subspace')
             return False
         
@@ -662,7 +662,7 @@ def wocb():
     sigmaZ = np.array([[1, 0], [0,-1]]);
     
     #Definition of Wocb according to arxiv.1105.4464, Eq. (7)
-    return 1./4*(qut.tn_product(ident,ident,ident,ident) + 1/np.sqrt(2)*(qut.tn_product(ident,sigmaZ,sigmaZ,ident) + qut.tn_product(sigmaZ,ident,sigmaX,sigmaZ)))
+    return 1./4*(qfunk.utility.tn_product(ident,ident,ident,ident) + 1/np.sqrt(2)*(qfunk.utility.tn_product(ident,sigmaZ,sigmaZ,ident) + qfunk.utility.tn_product(sigmaZ,ident,sigmaX,sigmaZ)))
 
 
 
