@@ -321,7 +321,7 @@ def number_state_map(m_num, p_num, j,k, basis, nstates, lookup, sparse=False):
         return operator
 
 
-def opt_subalgebra_gen(m_num, p_num, flatten=True):
+def opt_subalgebra_gen(m_num, p_num):
     """
     Outputs a basis for the generating algebra of unitary transformations on m_num modes and p_num bosons.
 
@@ -357,7 +357,7 @@ def opt_subalgebra_gen(m_num, p_num, flatten=True):
     # preallocate single photon basis array
     basis = np.eye(dim)
     # initialise list to contain basis (allows for sparse representation)
-    algebra_basis = np.zeros((m_num**2,dim**2),dtype=np.complex128)
+    algebra_basis = np.zeros((m_num**2, dim, dim),dtype=np.complex128)
 
     # compute the basis for the multiphoton algebra - is also the basis for the subalgebra so no need for exponential/logarithmic maps
     cnt = 0
@@ -376,7 +376,7 @@ def opt_subalgebra_gen(m_num, p_num, flatten=True):
             
             
             matrix = (op_left + op_right)*1j/2
-            algebra_basis[cnt,:] = matrix.reshape([1,-1])
+            algebra_basis[cnt,:,:] = matrix
             cnt += 1
 
     for j in range(m_num):
@@ -395,7 +395,7 @@ def opt_subalgebra_gen(m_num, p_num, flatten=True):
                              lookup=lookup_table)
             
             matrix = (op_left - op_right)/2
-            algebra_basis[cnt,:] = matrix.reshape([1,-1])
+            algebra_basis[cnt,:,:] = matrix
             cnt += 1
 
     return algebra_basis
