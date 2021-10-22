@@ -368,6 +368,7 @@ def opt_subalgebra_gen(m_num, p_num):
                              basis=basis, 
                              nstates=nstates, 
                              lookup=lookup_table)
+            
             op_right = number_state_map(m_num=m_num, p_num=p_num, 
                              j=k,k=j, 
                              basis=basis, 
