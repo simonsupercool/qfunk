@@ -40,13 +40,13 @@ def random_unitary(n):
     return q
 
 
-def rand_rho(n):
+def rand_rho(n, pure=False):
     """
     
     Parameters
     ----------
     n: size of the random density matrix that is to be sampled
-    
+    pure: whether to return a random pure state 
     
     Requires
     -------
@@ -59,9 +59,17 @@ def rand_rho(n):
     matrix of dimension n x n
     
     """
+
+    # check if pure state requested
+    if pure:
+        # generate equal superposition state
+        p = np.ones((n,n))/n
+    else:
+        # random probability vector as diagonal
+        p = np.diag(np.random.rand(n))
+        p = p/np.trace(p)
     
-    p = np.diag(np.random.rand(n))
-    p = p/np.trace(p)
+
     U = random_unitary(n)
     p = np.dot(np.dot(U,p),np.conjugate(np.transpose(U)))
     return p
@@ -151,13 +159,13 @@ def MUB_gen(d):
 
 
 
-def ent_gen(dim, vec=False):
+def ent_gen(n, vec=False):
     """
     Generates a maximally entangled bi-partite system each of dimension dim
 
     Parameters
     ----------
-    dim : positive integer specifying Hilbert space dimension
+    n : positive integer specifying Hilbert space dimension
     vec : boolean specifying whether to return entangled state as state vector or density operator
 
     Requires
@@ -166,18 +174,18 @@ def ent_gen(dim, vec=False):
 
     Returns
     -------
-    ent : d x d complex numpy array corresponding to maximally entangled state or d x 1 state vector of the same
+    ent : n x n complex numpy array corresponding to maximally entangled state or n x 1 state vector of the same
 
 
     """
 
     # pre allocate entangled state array
-    ent = np.zeros((dim**2,1),dtype=np.complex128)
+    ent = np.zeros((n**2,1),dtype=np.complex128)
 
     # iterate over each basis element
-    for i in range(dim):
+    for i in range(n):
         # generate computaional basis element
-        comput_el = np.zeros((dim, 1), dtype=np.complex128)
+        comput_el = np.zeros((n, 1), dtype=np.complex128)
         # assign value 
         comput_el[i] = 1.0
 
@@ -187,7 +195,7 @@ def ent_gen(dim, vec=False):
     if vec:
         return ent
     else:
-        return np.kron(ent, qfunk.utility.dagger(ent))/dim
+        return np.kron(ent, qfunk.utility.dagger(ent))/n
     
 def random_inst(num_of_el,dim_in,dim_out=None):
     """

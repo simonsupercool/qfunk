@@ -154,14 +154,14 @@ class Test_random_inst(unittest.TestCase):
     # define test to check correct 
     def test_positivity(self):
         #Create random instrument
-        instrument = qr.random_inst(num_of_el= self.num_of_el,dim_in = self.dim_in, dim_out = self.dim_out)
+        instrument = qg.random_inst(num_of_el= self.num_of_el,dim_in = self.dim_in, dim_out = self.dim_out)
         #Check that all its elements are positive
         for cp in instrument:
             self.assertTrue(min(np.real(LA.eigvals(cp))) >= 0, msg='Elements of the instrument are not positive')
 
     def test_trace_condition(self):
         # test that partial trace over sum of instrument elements is equal to the identity matrix
-        instrument = qr.random_inst(num_of_el= self.num_of_el,dim_in = self.dim_in, dim_out = self.dim_out)
+        instrument = qg.random_inst(num_of_el= self.num_of_el,dim_in = self.dim_in, dim_out = self.dim_out)
         inst_sum_red = np.sum([qut.trace_x(cp,[1],[self.dim_in,self.dim_out]) for cp in instrument], 0)
         self.assertTrue(np.allclose(np.eye(self.dim_in),inst_sum_red))
                         
@@ -324,7 +324,7 @@ class Test_dirsum(unittest.TestCase):
         self.S = qop.symmetric_map(self.m_num, self.p_num)
 
         # call init of parent test class
-        super(Test_symmetric_map, self).__init__(*args, **kwargs)
+        super(Test_dirsum, self).__init__(*args, **kwargs)
 
     # define test to check correct 
     def test_dimension(self):
@@ -464,10 +464,10 @@ class Test_Comb(unittest.TestCase):
         comb_4 = qos.Comb(mat=Mat4,dims=dims4,spaces=spaces4)
     
         #Check if causality_check functions properly
-        self.assertTrue(comb_1.is_causally_ordered(spaces1), msg="Causality check function of comb class does not work")
-        self.assertTrue(comb_2.is_causally_ordered(spaces2), msg="Causality check function of comb class does not work")
-        self.assertTrue(comb_3.is_causally_ordered(spaces3), msg="Causality check function of comb class does not work")
-        self.assertTrue(comb_4.is_causally_ordered(spaces4), msg="Causality check function of comb class does not work")
+        self.assertTrue(comb_1.is_causally_ordered(spaces1), msg="Causality check function of comb class does not work: 1")
+        self.assertTrue(comb_2.is_causally_ordered(spaces2), msg="Causality check function of comb class does not work: 2")
+        self.assertTrue(comb_3.is_causally_ordered(spaces3), msg="Causality check function of comb class does not work: 3")
+        self.assertTrue(comb_4.is_causally_ordered(spaces4), msg="Causality check function of comb class does not work: 4")
         
 # run tests
 if __name__ == '__main__':
