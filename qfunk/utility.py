@@ -389,9 +389,36 @@ def oppressor(M,tol=1e-15):
     
     Returns
     -----------
-    Suppressed 
+    Suppressed array of same size as input
     """
 
     M[abs(M) < tol] = 0.0 
 
     return M
+
+def mkron(A, n):
+    """
+    Computes the nth kronecker power of A^{\otimes n}
+    
+    Parameters
+    -----------
+    M:  Matrix to be raised to tensor power
+    n: power of tensor product
+    
+    Requires
+    -----------
+    numpy as np
+    
+    Returns
+    -----------
+    Matrix whose dimensions are the same as the input but raised to the power n
+
+    """
+
+    # assign new variable
+    B = A
+    # iterate through powers
+    for i in range(n-1):
+        B = np.kron(B,A)
+        
+    return B

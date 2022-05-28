@@ -1,7 +1,7 @@
 
 import numpy as np
 from scipy.special import comb
-from scipy.sparse import csc_matrix
+from scipy.sparse import csc_matrix, lil_matrix
 from itertools import product
 
 import qfunk.utility as qut
@@ -126,19 +126,39 @@ def symmetric_map(m_num, p_num):
     ldim = np.shape(uniques)[0]
 
     # preallocate symmetric transform matrix
-    P = np.zeros((ldim, col_num))
+    P = lil_matrix((ldim, col_num))
+
 
     # iterate over symmetric dimension
+    num = 0
     for k in range(ldim):
+        num = 0
         for m in range(col_num):
             if (uniques[k,:] == fock[m,:]).all():
                 P[k,m] = 1
-        
+                num += 1
+
+        if num>np.math.factorial(p_num)-1:
+            bits = P[k,:].toarray()[0] 
+            
+            print(bits)
+            combs = product(range(m_num), repeat=p_num)
+            cnt = 0
+            for el in combs:
+                if bits[cnt] == 1:
+                    print(cnt, el)
+
+                cnt += 1
+            exit()
+
         # ensure normalisation property holds
         P[k,:] /= np.sqrt(np.sum(P[k,:]))
 
     return P
 
+if __name__ == '__main__':
+    symmetric_map(3,2)
+    exit()
 
 def number_states(m_num,p_num):
     """
