@@ -1,0 +1,13 @@
+Metadata-Version: 2.1
+Name: qfunk
+Version: 0.1.2
+Summary: quantum information library
+Home-page: https://github.com/simonsupercool/qfunk
+Author: Simon Milz, Joshua Morris
+Author-email: Simon.Milz@oeaw.ac.at, joshua.morris@univie.ac.at
+Classifier: Programming Language :: Python :: 3
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Operating System :: OS Independent
+Requires-Python: >=3.5
+Description-Content-Type: text/markdown
+License-File: LICENSE.txt

@@ -90,7 +90,8 @@ def bistochastic_gen(n):
     
     Returns
     -------
-    A randomly generated bistochastic matrix - unclear what the sampling behaviour is however,  
+    A randomly generated bistochastic matrix - unclear what the sampling behaviour is however.
+    
     """
 
     # generate iid matrix

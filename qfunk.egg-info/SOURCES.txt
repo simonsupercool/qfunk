@@ -1,0 +1,14 @@
+LICENSE.txt
+README.md
+setup.py
+qfunk/__init__.py
+qfunk/decompose.py
+qfunk/generator.py
+qfunk/opensys.py
+qfunk/qoptic.py
+qfunk/testbench.py
+qfunk/utility.py
+qfunk.egg-info/PKG-INFO
+qfunk.egg-info/SOURCES.txt
+qfunk.egg-info/dependency_links.txt
+qfunk.egg-info/top_level.txt

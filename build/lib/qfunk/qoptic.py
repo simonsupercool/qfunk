@@ -36,7 +36,7 @@ def dirsum(arrayset, combination):
     
 
 
-def _str_base(num, base, length, numerals=100):
+def _str_base(num, base, length, numerals = '0123456789'):
     """
     Outputs a list of number states in each mode, useful when needing consistent dimension labels in a Fock space.
 
@@ -56,28 +56,30 @@ def _str_base(num, base, length, numerals=100):
     Representation of input number given chosen base and word length in string format
     
     """
-    # generate the list of numeral basis elements 
-    numerals = [r for r in range(numerals)]
 
     if base < 2 or base > len(numerals):
         raise ValueError("str_base: base must be between 2 and %i" % len(numerals))
 
     if num == 0:
-        return [0]*length
+        return '0'*length
 
-    result = []
+    if num < 0:
+        sign = '-'
+        num = -num
+    else:
+        sign = ''
+
+    result = ''
     while num:
-        result = [numerals[num % (base)]] + result
+        result = numerals[num % (base)] + result
         num //= base
 
 
-    if len(result) < length:
-        result = [0]*(length - len(result)) + result
+    out = sign + result
 
-    return result
-
-
-
+    if len(out) < length:
+        out = '0'*(length - len(out)) + out
+    return out
 
 
 # TODO: This is really inefficient, should fix
@@ -447,7 +449,8 @@ def optical_state_gen(m_num, p_num, nstate, sparse=False):
 
 def optical_projector(m_num, p_num, proj_modes, target, sparse=False):
     """
-    Computes operator that maps bosons in given modes to a target mode - acts like a partial trace operation while preserving dimension,  
+    Computes operator that maps bosons in given modes to a target mode - acts like a partial trace operation while preserving dimension.
+    
     Parameters
     -----------
     m_num: number of bosonic modes in system 
