@@ -422,3 +422,4 @@ def mkron(A, n):
         B = np.kron(B,A)
         
     return B
+
