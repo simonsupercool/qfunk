@@ -33,10 +33,15 @@ def random_unitary(n):
     
     """
     z = (np.random.rand(n,n) + 1j*np.random.rand(n,n))/np.sqrt(2.0)
+
     q,r = np.linalg.qr(z)
+    
     d = np.diagonal(r)
+    
     ph = d/np.absolute(d)
+    
     q = np.multiply(q,ph,q)
+    
     return q
 
 
@@ -133,7 +138,7 @@ def MUB_gen(d):
 
     Returns
     -------
-    gellman : d^2 x d x d complex numpy array containing spanning set
+    mub : d^2 x d x d complex numpy array containing spanning set
 
     """
 

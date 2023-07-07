@@ -70,7 +70,6 @@ def _str_base(num, base, length, numerals=100):
         result = [numerals[num % (base)]] + result
         num //= base
 
-
     if len(result) < length:
         result = [0]*(length - len(result)) + result
 
@@ -80,66 +79,97 @@ def _str_base(num, base, length, numerals=100):
 
 
 
-# TODO: This is really inefficient, should fix
+
+def fermi_to_boson(num, m, p):
+     """
+     Converts fermionic number states to bosonic number states. Map is surjective
+     """
+
+     # intialise list
+     boson_state = []
+     
+     # iterate over fermionic digits
+     for l in range(m):
+          boson_state.append(sum(np.equal(num,l)))
+
+     # return as immutable tuple
+     return tuple(boson_state)
+
+
+
 def symmetric_map(m_num, p_num):
-    """
-    Computes the permutation matrix to map the single Boson Hilbert space to that for p_num photons
-    and m_num modes, eliminating degenerate degrees of freedom. Exponentially faster than matrix permanent method
-    everyone else insists on using but at the cost of higher memory complexity. 
-    Useful for computing the action of single photon unitaries on multiphoton input states as U_{p_num} = S U^{\otimes p_num} S^T. 
-    
-    Parameters
-    -----------
-    m_num: number of bosonic modes in system
-    p_num: total number of bosons in system
-    
-    
-    Requires
-    -----------
-    numpy as np
-    
-    Returns
-    -----------
-    An isometric operator S that takes operators defined for F_{m_num,1} to F_{m_num, p_num}. 
-    
-    """
+     """
+     Computes the permutation matrix to map the single Boson Hilbert space to that for p_num photons
+     and m_num modes, eliminating degenerate degrees of freedom. Exponentially faster than matrix permanent method
+     everyone else insists on using but at the cost of higher memory complexity. 
+     Useful for computing the action of single photon unitaries on multiphoton input states as U_{p_num} = S U^{\otimes p_num} S^T. 
 
-    # compute size of output matrix
-    row_num = comb(m_num + p_num-1, p_num)
-    col_num = m_num**p_num
-
-    # compute photon states as an m-ary number of p_num bits
-    photon_state = np.asarray([list(_str_base(n,m_num,p_num)) for n in range(m_num**p_num)]).astype(int)
-
-    # compute mode occupation number for each row
-    fock = np.zeros((col_num, m_num), dtype=np.int32)
-    # iterate over rows
-    for i in range(np.shape(photon_state)[0]):
-        # iterate over columns
-        for j in range(m_num):
-            fock[i,j] = np.sum(photon_state[i,:]==j)
-
-    # compute unique Fock states
-    uniques = np.fliplr(np.unique(fock, axis=0))
-    ldim = np.shape(uniques)[0]
-
-    # preallocate symmetric transform matrix
-    P = lil_matrix((ldim, col_num))
+     Parameters
+     -----------
+     m_num: number of bosonic modes in system
+     p_num: total number of bosons in system
 
 
-    # iterate over symmetric dimension
-    num = 0
-    for k in range(ldim):
-        num = 0
-        for m in range(col_num):
-            if (uniques[k,:] == fock[m,:]).all():
-                P[k,m] = 1
-                num += 1
+     Requires
+     -----------
+     numpy as np
 
-        # ensure normalisation property holds
-        P[k,:] /= np.sqrt(np.sum(P[k,:]))
+     Returns
+     -----------
+     An isometric operator S that takes operators defined on <p_num> subsystems each with <m_num> dof to the symmetric equivalent 
 
-    return P
+     """
+
+     # compute size of output matrix
+     row_num = comb(m_num + p_num-1, p_num, exact=True)
+     col_num = m_num**p_num
+
+     # initialise a dict to store index hits
+     photonic_states = {}
+
+     # preallocate symmetric transform matrix
+     P = lil_matrix((row_num, col_num))
+
+     # compute fermionic number states
+     fermionic_number_states = [tuple(_str_base(n,m_num,p_num)) for n in range(m_num**p_num)]
+
+     # iterate over ferminonic number states and compute corresponding bosonic state
+     index_counter = 0
+     for col_ind, fermi_state in enumerate(fermionic_number_states):
+          
+          # compute bosonic equivlaent
+          boson_state = fermi_to_boson(fermi_state, m_num, p_num)
+
+          # check if already had this number
+          if boson_state in photonic_states:
+               # get row index and update the symmetric map
+               row_ind = photonic_states[boson_state]
+               P[row_ind, col_ind] = 1
+
+               continue
+
+          # update our indexer and assign
+          else:
+               # update index dictionary
+               photonic_states[boson_state] = index_counter
+               
+               # update symmetric map
+               row_ind = photonic_states[boson_state]
+               P[row_ind, col_ind] = 1
+
+               # update counter
+               index_counter += 1
+
+     # reverse ordering to match fock state order
+     P = P[::-1,::-1]
+
+
+     # ensure normalisation property holds
+     for k in range(row_num):
+          P[k,:] /= np.sqrt(np.sum(P[k,:]))
+
+     return P
+
 
 
 def number_states(m_num,p_num):
@@ -210,6 +240,9 @@ def fock_dim(m_num, p_num, full=False):
         return dim
     else:
         return comb(m_num+p_num-1,p_num, exact=True)
+
+
+
 
 def lookup_gen(m_num, p_num, nstates=None):
     """
@@ -350,6 +383,10 @@ def opt_subalgebra_gen(m_num, p_num):
 
     
     """
+
+    # catch trivial case
+    if p_num==0:
+        return np.asarray([[[1.0j]]])
 
     # compute dimension of isometric image
     dim = fock_dim(m_num, p_num, full=False)
