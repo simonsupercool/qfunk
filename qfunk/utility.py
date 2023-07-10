@@ -8,8 +8,11 @@ Contains basic functions for linear algebra.
 
 import numpy as np
 from scipy import sparse
+from multiprocessing import Pool
 
 import qfunk.opensys
+
+
 
 
 def trans_x(rho,sys,dim):
@@ -422,4 +425,225 @@ def mkron(A, n):
         B = np.kron(B,A)
         
     return B
+
+
+
+def _data_yielder(state, N, M):
+    """
+    Iterable function that stores shadow tomography data for multiprocessing purposes
+    
+    Parameters
+    -----------
+    state: Target state (pure state vector or density operator) to perform shadow tomography on  
+    N: Integer number of qubits in system
+    M: Integer number of clifford measurements to use for shadow tomography, controls the error and probability of failure
+    
+    Requires
+    -----------
+    numpy as np
+    
+    Returns
+    -----------
+    tuple of (state, N)
+
+    """
+
+    # store internal copies
+    internal_state = np.asarray(state)
+    qubit_num = N
+    shadow_num = M
+
+    # iterate until full tomography is complete
+    n = 0
+    while n <= shadow_num:
+        yield (internal_state, qubit_num)
+        n +=1
+
+
+
+
+
+def _shadow_get(a):
+    """
+    Performs a single random Clifford measurement and returns it as a stabiliser tableau
+    
+    Parameters
+    -----------
+    a: Tuple of a state and the number of qubits it contains
+    
+    Requires
+    -----------
+    numpy as np
+    
+    Returns
+    -----------
+    A single Clifford measurement outcome of the state in stabliser form
+
+    """
+
+    state, sys_num = a
+
+    #------------------------
+    # sparse X gate
+    X = csr_matrix(np.asarray([[0,1],[1,0]]))
+    #------------------------
+
+    # check if state vector or density operator
+    if np.shape(state)[0] != np.shape(state)[1]:
+
+        # generate clifford
+        cliff_circ = random_clifford(sys_num)
+        cliff_circ.phase = [False]*2*sys_num
+        cliff_op = csr_matrix(Operator(cliff_circ).data)
+        # apply to input vector
+        cliff_vec = cliff_op @ state
+
+        #-------------------------------------------------------
+        
+        # get the output probability distribution
+        outcome_distribution = np.squeeze(abs(cliff_vec)**2)
+
+        # produce a single outcome
+        outcome = np.random.choice(a=2**sys_num, p=outcome_distribution)
+
+        # convert outcome to binary in REVERSE order
+        binary_string = f"{outcome:0{sys_num}b}"[::-1]
+
+        #-------------------------------------------------------
+
+        # compute and apply the operators to build correct binary string
+        ops = [int(p) for p in binary_string]
+
+        # initialise quantum circuit
+        qc = QuantumCircuit(sys_num)
+        for i,el in enumerate(ops):
+          if el==1:
+              qc.x(i)
+
+        # convert to Clifford circuit
+        cliff = qc
+        # compute total clifford action
+        clifford_circ = cliff.compose(cliff_circ.adjoint().to_circuit())
+
+    # input is density operator
+    else:
+
+        # generate clifford
+        cliff_circ = random_clifford(sys_num)
+        cliff_circ.phase = [False]*2*sys_num
+        cliff_op = csr_matrix(Operator(cliff_circ).data)
+        # apply to input vector
+        cliff_state = cliff_op @ state @ qut.dagger(cliff_op)
+
+        #-------------------------------------------------------
+        
+        # get the output probability distribution
+        outcome_distribution = np.squeeze(abs(np.diag(cliff_state)))
+
+        # produce a single outcome
+        outcome = np.random.choice(a=2**sys_num, p=outcome_distribution)
+
+        # convert outcome to binary string in REVERSE order
+        binary_string = f"{outcome:0{sys_num}b}"[::-1]
+
+        #-------------------------------------------------------
+
+        # compute and apply the operators to build correct binary string
+        ops = [int(p) for p in binary_string]
+
+        # initialise quantum circuit
+        qc = QuantumCircuit(sys_num)
+        for i,el in enumerate(ops):
+          if el==1:
+              qc.x(i)
+
+        # convert to Clifford circuit
+        cliff = qc
+        # compute total clifford action
+        clifford_circ = cliff.compose(cliff_circ.adjoint().to_circuit())
+
+    # add the clifford operation and it's outcome to the shadow pair for reconstruction later
+    return clifford_circ
+
+
+
+def shadow_rebuild(state, sys_num, M, workers=1, silence=False):
+    """
+    Performs a shadow tomography on the target state consisting of <sys_num> qubits using <M> clifford measurements
+    
+    Parameters
+    -----------
+    state: Target state (pure state vector or density operator) to perform shadow tomography on  
+    sys_num: Integer number of qubits in system
+    M: Integer number of clifford measurements to use for shadow tomography, controls the error and probability of failure
+    workers: Integer number of simulateous simulators to run to acquire shadows - approximately linear scaling speedup for increased memory usage
+    silence: Boolean flag on whether to display progress
+    
+    Requires
+    -----------
+    numpy as np
+    qiskit.quantum info
+    
+    Returns
+    -----------
+    List of operators U^dagger such that U^dagger|0> is the stabiliser measurement outcome 
+
+    """
+
+    # import optional qiskit library function for random generation
+    from qiskit.quantum_info import random_clifford, Operator, Clifford
+
+    #-------------------------------------------------------
+    # generate the random Clifford measurements we will use
+    shadows = []
+    data_streamer = _data_yielder(state, sys_num, M)
+
+    # compute shadows in parallel
+    with Pool(processes=workers) as pool:
+        shadows += list(tqdm(pool.imap_unordered(func=_shadow_get, iterable=data_streamer, chunksize=1), total=M, desc='Performing reconstruction from the shadow realm', ascii=' #', leave=False, disable=silence))
+        
+    return shadows
+
+
+
+def shadow_estimator(shadows, sys_num):
+    """
+    Performs a shadow tomography on the target state consisting of <sys_num> qubits using <M> clifford measurements
+    
+    Parameters
+    -----------
+    state: Target state (pure state vector or density operator) to perform shadow tomography on  
+    sys_num: Integer number of qubits in system
+    
+    Requires
+    -----------
+    numpy as np
+    qiskit.quantum_info
+    
+    Returns
+    -----------
+    The classical shadow estimator
+    """
+
+    # import optional qiskit library function for random generation
+    from qiskit.quantum_info import Operator
+
+    # initialise density operator
+    rho = np.zeros([2**sys_num]*2, dtype=np.complex128)
+    # seed state for stabiliser states
+    seed_state = np.zeros([2**sys_num]*2, dtype=np.complex128)
+    seed_state[0,0] = 1.0
+
+    # iterate over all measured shadows
+    for shad in tqdm(shadows, desc='Generating mixed shadow state'):
+        U = Operator(shad).data
+        rho += U @ seed_state @ qut.dagger(U)
+
+    # compute the average state
+    rho /= len(shadows)
+
+    # return the estimator
+    return (2**sys_num + 1)*rho - np.eye(2**sys_num)
+
+
 
