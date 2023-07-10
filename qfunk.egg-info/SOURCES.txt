@@ -1,5 +1,6 @@
 LICENSE.txt
 README.md
+setup.cfg
 setup.py
 qfunk/__init__.py
 qfunk/decompose.py

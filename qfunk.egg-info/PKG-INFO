@@ -1,8 +1,9 @@
 Metadata-Version: 2.1
 Name: qfunk
-Version: 0.1.2
+Version: 0.1.3
 Summary: quantum information library
 Home-page: https://github.com/simonsupercool/qfunk
+Download-URL: https://github.com/simonsupercool/qfunk/archive/refs/tags/v0.1.3.tar.gz
 Author: Simon Milz, Joshua Morris
 Author-email: Simon.Milz@oeaw.ac.at, joshua.morris@univie.ac.at
 Classifier: Programming Language :: Python :: 3

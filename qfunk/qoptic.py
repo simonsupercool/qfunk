@@ -166,7 +166,7 @@ def symmetric_map(m_num, p_num):
 
      # ensure normalisation property holds
      for k in range(row_num):
-          P[k,:] /= np.sqrt(np.sum(P[k,:]))
+          P[k,:] /= np.sqrt(P[k,:].sum())
 
      return P
 
