@@ -244,10 +244,10 @@ def tn_product(*args, sparse=False, list_of_mat=False):
         if list_of_mat:         #account for tuples of matrices
             result = args[0][0]
             for Mat in args[0][1:]:
-            if sparse:
-                result = sparse.kron(result, Mat)
-            else:
-                result = np.kron(result,Mat)
+                if sparse:
+                    result = sparse.kron(result, Mat)
+                else:
+                    result = np.kron(result,Mat)
         else: 
             result = args[0]
             for Mat in args[1:]:
