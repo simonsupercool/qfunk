@@ -222,7 +222,7 @@ def Lv(rho,dims):
 
 
 
-def tn_product(*args, sparse=False):
+def tn_product(*args, sparse=False, list_of_mat=False):
     """
     Parameters
     ----------
@@ -241,12 +241,20 @@ def tn_product(*args, sparse=False):
         print('tn_product requires at least one argument. Returned an empty array.')
         return np.array([])
     else:
-        result = args[0]
-        for Mat in args[1:]:
+        if list_of_mat:         #account for tuples of matrices
+            result = args[0][0]
+            for Mat in args[0][1:]:
             if sparse:
                 result = sparse.kron(result, Mat)
             else:
                 result = np.kron(result,Mat)
+        else: 
+            result = args[0]
+            for Mat in args[1:]:
+                if sparse:
+                    result = sparse.kron(result, Mat)
+                else:
+                    result = np.kron(result,Mat)
         return result
 
 def dagger(M):
