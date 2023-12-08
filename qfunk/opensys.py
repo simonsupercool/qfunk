@@ -51,7 +51,7 @@ def link_prod(C1,C2):
         (Dict1,Dict2) = ({},{})
         for n in np.arange(len(Names1)):
             Dict1[Names1[n]] = dim1[n]
-        for n in np.arange(len(Names1)):
+        for n in np.arange(len(Names2)):
             Dict2[Names2[n]] = dim2[n]
         Dict = {**Dict1, **Dict2}
         
@@ -71,7 +71,7 @@ def link_prod(C1,C2):
         #correct size    
         #dimension of the additional identity matrix
         ExDim1sys = [Dict[Sp2] for Sp2 in Space2]
-        ExDim1 = np.prod(np.array(ExDim1sys))
+        ExDim1 = int(np.prod(np.array(ExDim1sys)))
         #Positon of the common spaces
         PosComm1 = np.array([np.where(Names1 == label)  for label in CommSpaces]).flatten()
         #Tensor product and partial transposition over common spaces
@@ -82,7 +82,7 @@ def link_prod(C1,C2):
         
         #Dimension of the additional identity matrix
         ExDim2sys = [Dict[Sp1] for Sp1 in Space1]
-        ExDim2 = np.prod(np.array(ExDim2sys))
+        ExDim2 = int(np.prod(np.array(ExDim2sys)))
         #tensoring with identity
         Comb2 = np.kron(Comb2,np.eye(ExDim2))
         
@@ -149,7 +149,6 @@ class Comb(object):
         
         #Throw warning if spaces don't amount to the correct dimension
         if len((self.mat).flatten()) != (np.prod(np.array(dims)))**2:
-            print (dims)
             warnings.warn('Warning: The dimension of the comb does not fit with the given list of dimensions. A comb is returned but you WILL definitely run into trouble!', RuntimeWarning)
     
     
@@ -222,14 +221,10 @@ class Comb(object):
         sys = []
         for n in np.arange(len(reducspaces)):
             sys.append(np.array(np.where(np.array(self.spaces) == reducspaces[n])).flatten())
-            print(sys)
         sys = np.array(sys).flatten()
         self.mat = qfunk.utility.trace_x(self.mat,sys,self.dims)
-        print(self.mat)
         self.spaces = np.delete(np.array(self.spaces),sys)
-        print(self.spaces)
         self.dims = np.delete(np.array(self.dims),sys)
-        print(self.dims)
         
     def link(self,C2,overwrite=False):
         """
@@ -276,7 +271,7 @@ class Comb(object):
             (Dict1,Dict2) = ({},{})
             for n in np.arange(len(Names1)):
                 Dict1[Names1[n]] = dim1[n]
-            for n in np.arange(len(Names1)):
+            for n in np.arange(len(Names2)):
                 Dict2[Names2[n]] = dim2[n]
             Dict = {**Dict1, **Dict2}
             
@@ -296,7 +291,7 @@ class Comb(object):
             #correct size    
             #dimension of the additional identity matrix
             ExDim1sys = [Dict[Sp2] for Sp2 in Space2]
-            ExDim1 = np.prod(np.array(ExDim1sys))
+            ExDim1 = int(np.prod(np.array(ExDim1sys)))
             #Positon of the common spaces
             PosComm1 = np.array([np.where(Names1 == label)  for label in CommSpaces]).flatten()
             #Tensor product and partial transposition over common spaces
@@ -307,7 +302,7 @@ class Comb(object):
             
             #Dimension of the additional identity matrix
             ExDim2sys = [Dict[Sp1] for Sp1 in Space1]
-            ExDim2 = np.prod(np.array(ExDim2sys))
+            ExDim2 = int(np.prod(np.array(ExDim2sys)))
             #tensoring with identity
             Comb2 = np.kron(Comb2,np.eye(ExDim2))
             
