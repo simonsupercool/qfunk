@@ -32,7 +32,7 @@ def random_unitary(n):
     randomly (according to Haar measure) generated unitary matrix of dimension n x n
     
     """
-    z = (np.random.rand(n,n) + 1j*np.random.rand(n,n))/np.sqrt(2.0)
+    z = (np.random.randn(n,n) + 1j*np.random.randn(n,n))/np.sqrt(2.0)
 
     q,r = np.linalg.qr(z)
     
